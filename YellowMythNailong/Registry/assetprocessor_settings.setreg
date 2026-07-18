@@ -17,6 +17,11 @@
                     "recursive": 1,
                     "order": 3
                 },
+                "ScanFolder Project/AssetsSource": {
+                    "watch": "@PROJECTROOT@/../Assets-Source",
+                    "recursive": 1,
+                    "order": 4
+                },
                 "Exclude export scripts": {
                     "pattern": ".*\\\\/ExportScripts\\\\/.*"
                 },
