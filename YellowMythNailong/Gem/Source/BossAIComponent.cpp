@@ -205,4 +205,14 @@ namespace YellowMythNailong
     {
         AZLOG_INFO("Boss defeated!");
     }
+
+    void BossAIComponent::OnRestartGame()
+    {
+        // Reset the boss to full health back at its spawn point, waiting to be engaged.
+        m_health = m_maxHealth;
+        m_state = State::Idle;
+        m_attackTimer = 0.0f;
+        m_staggerTimer = 0.0f;
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, AZ::Vector3(20.0f, 20.0f, 0.75f));
+    }
 } // namespace YellowMythNailong

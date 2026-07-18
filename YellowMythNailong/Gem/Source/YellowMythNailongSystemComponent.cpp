@@ -17,6 +17,10 @@
 #include <AzCore/Component/TransformBus.h>
 
 #include "PlayerControllerComponent.h"
+#include "BossAIComponent.h"
+#include "CombatManagerComponent.h"
+
+#include <imgui/imgui.h>
 
 namespace YellowMythNailong
 {
@@ -75,6 +79,7 @@ namespace YellowMythNailong
     {
         YellowMythNailongRequestBus::Handler::BusConnect();
         AzFramework::GameEntityContextEventBus::Handler::BusConnect();
+        ImGui::ImGuiUpdateListenerBus::Handler::BusConnect();
 
         AzFramework::EntityContextId contextId = AzFramework::EntityContextId::CreateNull();
         AzFramework::GameEntityContextRequestBus::BroadcastResult(contextId, &AzFramework::GameEntityContextRequests::GetGameEntityContextId);
@@ -86,6 +91,7 @@ namespace YellowMythNailong
 
     void YellowMythNailongSystemComponent::Deactivate()
     {
+        ImGui::ImGuiUpdateListenerBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
         AzFramework::GameEntityContextEventBus::Handler::BusDisconnect();
@@ -98,6 +104,12 @@ namespace YellowMythNailong
 
     void YellowMythNailongSystemComponent::OnGameEntitiesStarted()
     {
+        // Show the HUD while keeping keyboard/mouse input flowing to the game.
+        // Set this here (rather than in Activate) so the ImGui manager is guaranteed
+        // to be connected to ImGuiManagerBus already.
+        ImGui::ImGuiManagerBus::Broadcast(&ImGui::IImGuiManager::SetDisplayState, ImGui::DisplayState::Visible);
+        ImGui::ImGuiManagerBus::Broadcast(&ImGui::IImGuiManager::SetEnableDiscreteInputMode, false);
+
         if (CanCreateRuntimeCamera())
         {
             SetupRuntimeCamera();
@@ -236,6 +248,147 @@ namespace YellowMythNailong
                 }
                 return true;
             });
+        }
+    }
+
+    void YellowMythNailongSystemComponent::OnImGuiUpdate()
+    {
+        DrawHud();
+    }
+
+    void YellowMythNailongSystemComponent::DrawHud()
+    {
+        // Gather gameplay state from the entities.
+        float playerHp = -1.0f, playerMax = 1.0f;
+        float bossHp = -1.0f, bossMax = 1.0f;
+        bool bossFound = false, gameOver = false, victory = false;
+
+        if (auto* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get())
+        {
+            appRequests->EnumerateEntities([&](AZ::Entity* entity)
+            {
+                if (!entity)
+                {
+                    return true;
+                }
+                const AZStd::string& name = entity->GetName();
+                if (name == "NailongPlayer")
+                {
+                    if (auto* pc = entity->FindComponent<PlayerControllerComponent>())
+                    {
+                        playerHp = pc->GetHealth();
+                        playerMax = pc->GetMaxHealth();
+                    }
+                }
+                else if (name == "DarkBoss")
+                {
+                    if (auto* boss = entity->FindComponent<BossAIComponent>())
+                    {
+                        bossFound = true;
+                        bossHp = boss->GetHealth();
+                        bossMax = boss->GetMaxHealth();
+                    }
+                }
+                else if (name == "CombatManager")
+                {
+                    if (auto* cm = entity->FindComponent<CombatManagerComponent>())
+                    {
+                        gameOver = cm->IsGameOver();
+                        victory = cm->IsVictory();
+                    }
+                }
+                return true;
+            });
+        }
+
+        ImGuiIO& io = ImGui::GetIO();
+        const float sw = io.DisplaySize.x;
+        const float sh = io.DisplaySize.y;
+
+        const ImGuiWindowFlags hudFlags =
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs |
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize;
+
+        auto fraction = [](float value, float max)
+        {
+            float f = max > 0.0f ? value / max : 0.0f;
+            return f < 0.0f ? 0.0f : (f > 1.0f ? 1.0f : f);
+        };
+
+        // Player HP (top-left).
+        if (playerHp >= 0.0f)
+        {
+            ImGui::SetNextWindowPos(ImVec2(20.0f, 16.0f));
+            ImGui::Begin("PlayerHP", nullptr, hudFlags);
+            ImGui::Text("NAILONG  %d / %d", static_cast<int>(playerHp), static_cast<int>(playerMax));
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1.0f, 0.8f, 0.1f, 1.0f));
+            ImGui::ProgressBar(fraction(playerHp, playerMax), ImVec2(300.0f, 18.0f));
+            ImGui::PopStyleColor();
+            ImGui::End();
+        }
+
+        // Boss HP (top-right), only once engaged.
+        if (bossFound && bossHp > 0.0f)
+        {
+            ImGui::SetNextWindowPos(ImVec2(sw - 340.0f, 16.0f));
+            ImGui::Begin("BossHP", nullptr, hudFlags);
+            ImGui::Text("DARK DRAGON  %d / %d", static_cast<int>(bossHp), static_cast<int>(bossMax));
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.6f, 0.1f, 0.8f, 1.0f));
+            ImGui::ProgressBar(fraction(bossHp, bossMax), ImVec2(300.0f, 18.0f));
+            ImGui::PopStyleColor();
+            ImGui::End();
+        }
+
+        // Objective (top-center).
+        {
+            const char* objective = victory ? "The Dark Dragon is slain" : "Defeat the Dark Dragon";
+            const float tw = ImGui::CalcTextSize(objective).x;
+            ImGui::SetNextWindowPos(ImVec2((sw - tw) * 0.5f, 18.0f));
+            ImGui::Begin("Objective", nullptr, hudFlags);
+            ImGui::TextUnformatted(objective);
+            ImGui::End();
+        }
+
+        // Controls hint (bottom-center).
+        {
+            const char* hint = "WASD Move    Space Dodge    Enter / LMB Attack";
+            const float tw = ImGui::CalcTextSize(hint).x;
+            ImGui::SetNextWindowPos(ImVec2((sw - tw) * 0.5f, sh - 36.0f));
+            ImGui::Begin("Hint", nullptr, hudFlags);
+            ImGui::TextUnformatted(hint);
+            ImGui::End();
+        }
+
+        // Game over / victory banner (center).
+        if (gameOver)
+        {
+            const char* title = victory ? "VICTORY!" : "YOU DIED";
+            const char* sub = victory ? "Nailong reigns supreme" : "The Yellow Myth has fallen...";
+            const char* restart = "Press R to play again";
+            const ImVec4 titleColor = victory ? ImVec4(1.0f, 0.85f, 0.1f, 1.0f) : ImVec4(0.9f, 0.15f, 0.1f, 1.0f);
+
+            ImGui::SetNextWindowPos(ImVec2(sw * 0.5f - 220.0f, sh * 0.5f - 70.0f));
+            ImGui::SetNextWindowSize(ImVec2(440.0f, 0.0f));
+            ImGui::Begin("GameOver", nullptr, hudFlags);
+
+            ImGui::SetWindowFontScale(3.0f);
+            {
+                const float tw = ImGui::CalcTextSize(title).x;
+                ImGui::SetCursorPosX((440.0f - tw) * 0.5f);
+                ImGui::PushStyleColor(ImGuiCol_Text, titleColor);
+                ImGui::TextUnformatted(title);
+                ImGui::PopStyleColor();
+            }
+            ImGui::SetWindowFontScale(1.2f);
+            for (const char* line : { sub, restart })
+            {
+                const float tw = ImGui::CalcTextSize(line).x;
+                ImGui::SetCursorPosX((440.0f - tw) * 0.5f);
+                ImGui::TextUnformatted(line);
+            }
+            ImGui::SetWindowFontScale(1.0f);
+            ImGui::End();
         }
     }
 

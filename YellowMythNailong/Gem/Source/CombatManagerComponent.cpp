@@ -147,6 +147,14 @@ namespace YellowMythNailong
             return;
         }
         m_gameOver = true;
+        m_victory = true;
         AZLOG_INFO("VICTORY - The Dark Lord is defeated! Nailong reigns supreme!");
+    }
+
+    void CombatManagerComponent::OnRestartGame()
+    {
+        m_gameOver = false;
+        m_victory = false;
+        AZLOG_INFO("Restarting the Yellow Myth...");
     }
 } // namespace YellowMythNailong

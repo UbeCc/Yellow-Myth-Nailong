@@ -40,6 +40,7 @@ ly_add_target(
             Gem::Atom_Component_DebugCamera.Static
             Gem::Camera
             Gem::StartingPointInput
+            Gem::ImGui.Static
 )
 
 ly_add_target(
@@ -55,6 +56,7 @@ ly_add_target(
         PRIVATE
             Gem::${gem_name}.Private.Object
             Gem::StartingPointInput
+            Gem::ImGui.Static
             AZ::AzFramework
             AZ::AzCore
 )

@@ -22,6 +22,9 @@ namespace YellowMythNailong
 
         void SetPlayerEntityId(AZ::EntityId id) { m_playerEntityId = id; }
 
+        float GetHealth() const { return m_health; }
+        float GetMaxHealth() const { return m_maxHealth; }
+
     protected:
         void Init() override;
         void Activate() override;
@@ -32,6 +35,7 @@ namespace YellowMythNailong
         void OnPlayerAttack(const AZ::Vector3& position, float radius, float damage) override;
         void OnBossDamaged(float damage) override;
         void OnBossDied() override;
+        void OnRestartGame() override;
 
     private:
         enum class State

@@ -5,6 +5,7 @@
 #include <AzCore/Component/TickBus.h>
 #include <AzFramework/Entity/EntityContextBus.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
+#include <ImGuiBus.h>
 
 #include <YellowMythNailong/YellowMythNailongBus.h>
 
@@ -16,6 +17,7 @@ namespace YellowMythNailong
         , protected AzFramework::GameEntityContextEventBus::Handler
         , protected AzFramework::EntityContextEventBus::Handler
         , public AZ::TickBus::Handler
+        , public ImGui::ImGuiUpdateListenerBus::Handler
     {
     public:
         AZ_COMPONENT_DECL(YellowMythNailongSystemComponent);
@@ -45,9 +47,13 @@ namespace YellowMythNailong
         // AZ::TickBus
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        // ImGui::IImGuiUpdateListener
+        void OnImGuiUpdate() override;
+
     private:
         void SetupRuntimeCamera();
         bool CanCreateRuntimeCamera() const;
+        void DrawHud();
 
         AZ::EntityId m_runtimeCameraId;
     };

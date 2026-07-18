@@ -125,6 +125,13 @@ namespace YellowMythNailong
                 m_attackRequested = true;
             }
         }
+        else if (channelName == "keyboard_key_alphanumeric_R")
+        {
+            if (pressed)
+            {
+                CombatNotificationBus::Broadcast(&CombatNotifications::OnRestartGame);
+            }
+        }
         else
         {
             return false;
@@ -218,6 +225,18 @@ namespace YellowMythNailong
     void PlayerControllerComponent::OnPlayerDied()
     {
         AZLOG_INFO("Player died!");
+    }
+
+    void PlayerControllerComponent::OnRestartGame()
+    {
+        // Reset the player to full health at the spawn point so a new round can start.
+        m_health = m_maxHealth;
+        m_isDodging = false;
+        m_dodgeTimer = 0.0f;
+        m_attackTimer = 0.0f;
+        m_attackRequested = false;
+        m_keyW = m_keyA = m_keyS = m_keyD = m_keySpace = false;
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, AZ::Vector3::CreateZero());
     }
 
     void PlayerControllerComponent::Move(const AZ::Vector3& direction, float deltaTime)

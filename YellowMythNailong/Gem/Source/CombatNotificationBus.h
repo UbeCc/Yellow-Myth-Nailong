@@ -20,6 +20,8 @@ namespace YellowMythNailong
         virtual void OnBossDamaged(float damage) { AZ_UNUSED(damage); }
         virtual void OnPlayerDied() {}
         virtual void OnBossDied() {}
+        // Broadcast when the player asks to restart after game over / victory.
+        virtual void OnRestartGame() {}
     };
     using CombatNotificationBus = AZ::EBus<CombatNotifications>;
 } // namespace YellowMythNailong

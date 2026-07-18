@@ -23,6 +23,9 @@ namespace YellowMythNailong
 
         void SetCameraEntityId(AZ::EntityId id) { m_cameraEntityId = id; }
 
+        float GetHealth() const { return m_health; }
+        float GetMaxHealth() const { return m_maxHealth; }
+
     protected:
         void Init() override;
         void Activate() override;
@@ -37,6 +40,7 @@ namespace YellowMythNailong
         // CombatNotificationBus
         void OnPlayerDamaged(float damage) override;
         void OnPlayerDied() override;
+        void OnRestartGame() override;
 
     private:
         void Move(const AZ::Vector3& direction, float deltaTime);

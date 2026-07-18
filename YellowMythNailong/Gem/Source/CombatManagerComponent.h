@@ -22,6 +22,9 @@ namespace YellowMythNailong
         void SetPlayerEntityId(AZ::EntityId id) { m_playerEntityId = id; }
         void SetBossEntityId(AZ::EntityId id) { m_bossEntityId = id; }
 
+        bool IsGameOver() const { return m_gameOver; }
+        bool IsVictory() const { return m_victory; }
+
     protected:
         void Init() override;
         void Activate() override;
@@ -31,6 +34,7 @@ namespace YellowMythNailong
         void OnBossAttack(const AZ::Vector3& position, float radius, float damage) override;
         void OnPlayerDied() override;
         void OnBossDied() override;
+        void OnRestartGame() override;
 
     private:
         void TryFindEntities();
@@ -39,5 +43,6 @@ namespace YellowMythNailong
         AZ::EntityId m_playerEntityId;
         AZ::EntityId m_bossEntityId;
         bool m_gameOver = false;
+        bool m_victory = false;
     };
 } // namespace YellowMythNailong
