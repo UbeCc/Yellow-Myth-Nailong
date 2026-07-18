@@ -482,7 +482,12 @@
                         "Translate": [
                             0.0,
                             0.0,
-                            1.0
+                            0.5
+                        ],
+                        "Scale": [
+                            0.004,
+                            0.004,
+                            0.004
                         ]
                     }
                 },
@@ -493,10 +498,10 @@
                         "Configuration": {
                             "ModelAsset": {
                                 "assetId": {
-                                    "guid": "{5D4A455D-E584-54ED-ACBA-DE780F1FB00F}",
-                                    "subId": 270370614
+                                    "guid": "{00000000-0000-0000-0000-000000000000}",
+                                    "subId": 0
                                 },
-                                "assetHint": "materialeditor/viewportmodels/platonicsphere.fbx.azmodel"
+                                "assetHint": "assets-source/quaternius/monsterpack/fbx/dragon.fbx.azmodel"
                             }
                         }
                     }
@@ -514,9 +519,9 @@
                                     "Value": {
                                         "MaterialAsset": {
                                             "assetId": {
-                                                "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
+                                                "guid": "{00000000-0000-0000-0000-000000000000}"
                                             },
-                                            "assetHint": "assets/materials/yellownailong.azmaterial"
+                                            "assetHint": "assets/materials/yellownailong_body.azmaterial"
                                         }
                                     }
                                 }
@@ -578,12 +583,12 @@
                         "Translate": [
                             8.0,
                             8.0,
-                            1.0
+                            0.75
                         ],
                         "Scale": [
-                            2.5,
-                            2.5,
-                            2.5
+                            0.008,
+                            0.008,
+                            0.008
                         ]
                     }
                 },
@@ -594,10 +599,10 @@
                         "Configuration": {
                             "ModelAsset": {
                                 "assetId": {
-                                    "guid": "{8F19FB6D-DF18-5CC0-B921-6755089004D7}",
-                                    "subId": 275006192
+                                    "guid": "{00000000-0000-0000-0000-000000000000}",
+                                    "subId": 0
                                 },
-                                "assetHint": "materialeditor/viewportmodels/beveledcube.fbx.azmodel"
+                                "assetHint": "assets-source/quaternius/monsterpack/fbx/dragon.fbx.azmodel"
                             }
                         }
                     }
