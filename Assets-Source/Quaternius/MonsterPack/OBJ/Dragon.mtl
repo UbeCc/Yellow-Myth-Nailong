@@ -1,10 +1,10 @@
 # File produced by Open Asset Import Library (http://www.assimp.sf.net)
-# (assimp v5.4.0)
+# Palette retouched for the Yellow Myth: Nailong (奶龙) look.
 
 newmtl Main
-Kd 0.0397652611 0.00928979646 0.0115550738
+Kd 1.0 0.85 0.1
 Ka 0 0 0
-Ks 1 1 1
+Ks 0.3 0.3 0.3
 Ke 0 0 0
 Tf 0 0 0
 d 1
@@ -12,9 +12,9 @@ Ns 9.6078434
 illum 2
 
 newmtl Belly
-Kd 0.26110059 0.180912673 0.0187655911
+Kd 1.0 0.95 0.75
 Ka 0 0 0
-Ks 1 1 1
+Ks 0.2 0.2 0.2
 Ke 0 0 0
 Tf 0 0 0
 d 1
@@ -22,9 +22,9 @@ Ns 9.6078434
 illum 2
 
 newmtl Claws
-Kd 0.00721454341 0.00721454341 0.00721454341
+Kd 0.08 0.07 0.06
 Ka 0 0 0
-Ks 1 1 1
+Ks 0.2 0.2 0.2
 Ke 0 0 0
 Tf 0 0 0
 d 1
@@ -32,9 +32,9 @@ Ns 9.6078434
 illum 2
 
 newmtl Wings
-Kd 0.0107283313 0.0107283313 0.0107283313
+Kd 0.12 0.1 0.08
 Ka 0 0 0
-Ks 1 1 1
+Ks 0.2 0.2 0.2
 Ke 0 0 0
 Tf 0 0 0
 d 1
@@ -42,12 +42,11 @@ Ns 9.6078434
 illum 2
 
 newmtl Eyes
-Kd 0.0107283313 0.0107283313 0.0107283313
+Kd 0.01 0.01 0.01
 Ka 0 0 0
-Ks 1 1 1
+Ks 0.5 0.5 0.5
 Ke 0 0 0
 Tf 0 0 0
 d 1
 Ns 9.6078434
 illum 2
-

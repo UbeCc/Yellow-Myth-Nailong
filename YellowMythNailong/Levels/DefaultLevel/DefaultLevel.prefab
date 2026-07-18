@@ -506,29 +506,6 @@
                         }
                     }
                 },
-                "Component_[2000000000000000003]": {
-                    "$type": "EditorMaterialComponent",
-                    "Id": 2000000000000000003,
-                    "Controller": {
-                        "Configuration": {
-                            "materials": [
-                                {
-                                    "Key": {
-                                        "materialSlotStableId": 4294967295
-                                    },
-                                    "Value": {
-                                        "MaterialAsset": {
-                                            "assetId": {
-                                                "guid": "{00000000-0000-0000-0000-000000000000}"
-                                            },
-                                            "assetHint": "assets/materials/yellownailong_body.azmaterial"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
                 "Component_[2000000000000000004]": {
                     "$type": "GenericComponentWrapper",
                     "Id": 2000000000000000004,
