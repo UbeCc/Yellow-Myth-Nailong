@@ -4,6 +4,7 @@
 #include <AzCore/Console/ILogger.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <AzCore/Component/TickBus.h>
+#include <AzCore/std/string/string.h>
 
 #include <AzFramework/Entity/EntityContextBus.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
@@ -13,7 +14,6 @@
 #include <Atom/RPI.Public/ViewGroup.h>
 #include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/RPISystemInterface.h>
-#include <AtomLyIntegration/CommonFeatures/CoreLights/CoreLightsConstants.h>
 #include <AzCore/Component/TransformBus.h>
 
 #include "PlayerControllerComponent.h"
@@ -92,7 +92,6 @@ namespace YellowMythNailong
         YellowMythNailongRequestBus::Handler::BusDisconnect();
     }
 
-
     void YellowMythNailongSystemComponent::OnEntityContextLoadedFromStream(const AzFramework::EntityList& /*contextEntities*/)
     {
     }
@@ -102,7 +101,6 @@ namespace YellowMythNailong
         if (CanCreateRuntimeCamera())
         {
             SetupRuntimeCamera();
-            CreateRuntimeSun();
         }
         else
         {
@@ -116,7 +114,6 @@ namespace YellowMythNailong
         if (CanCreateRuntimeCamera())
         {
             SetupRuntimeCamera();
-            CreateRuntimeSun();
             AZ::TickBus::Handler::BusDisconnect();
         }
     }
@@ -125,55 +122,6 @@ namespace YellowMythNailong
     {
         auto* rpiSystem = AZ::RPI::RPISystemInterface::Get();
         return rpiSystem && rpiSystem->IsInitialized();
-    }
-
-    void YellowMythNailongSystemComponent::CreateRuntimeSun()
-    {
-        AzFramework::EntityContextId contextId = AzFramework::EntityContextId::CreateNull();
-        AzFramework::GameEntityContextRequestBus::BroadcastResult(
-            contextId, &AzFramework::GameEntityContextRequests::GetGameEntityContextId);
-        if (contextId.IsNull())
-        {
-            return;
-        }
-
-        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
-        if (appRequests)
-        {
-            bool found = false;
-            appRequests->EnumerateEntities([&found](AZ::Entity* entity)
-            {
-                if (entity && entity->GetName() == "NailongSun")
-                {
-                    found = true;
-                    return false;
-                }
-                return true;
-            });
-            if (found)
-            {
-                return;
-            }
-        }
-
-        AZ::Entity* sunEntity = nullptr;
-        AzFramework::EntityContextRequestBus::EventResult(
-            sunEntity, contextId, &AzFramework::EntityContextRequests::CreateEntity, "NailongSun");
-        if (!sunEntity)
-        {
-            AZLOG_WARN("NailongSystem: failed to create runtime sun entity");
-            return;
-        }
-
-        sunEntity->CreateComponent(AZ::TransformComponentTypeId);
-        sunEntity->CreateComponent(AZ::Render::DirectionalLightComponentTypeId);
-        sunEntity->Activate();
-
-        AZ::Vector3 sunPos(0.0f, -20.0f, 30.0f);
-        AZ::Vector3 lookAt(0.0f, 0.0f, 0.0f);
-        AZ::Transform sunTransform = AZ::Transform::CreateLookAt(sunPos, lookAt, AZ::Transform::Axis::ZPositive);
-        AZ::TransformBus::Event(sunEntity->GetId(), &AZ::TransformInterface::SetWorldTM, sunTransform);
-        AZLOG_INFO("NailongSystem: created runtime sun entity %s", sunEntity->GetId().ToString().c_str());
     }
 
     void YellowMythNailongSystemComponent::SetupRuntimeCamera()

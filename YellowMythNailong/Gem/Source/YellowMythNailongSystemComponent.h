@@ -47,7 +47,6 @@ namespace YellowMythNailong
 
     private:
         void SetupRuntimeCamera();
-        void CreateRuntimeSun();
         bool CanCreateRuntimeCamera() const;
 
         AZ::EntityId m_runtimeCameraId;
