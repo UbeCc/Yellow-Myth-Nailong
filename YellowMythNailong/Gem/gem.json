@@ -21,9 +21,8 @@
     "requirements": "",
     "documentation_url": "",
     "dependencies": [
+        "Camera"
     ],
-    "compatible_engines": [
-    ],
-    "engine_api_dependencies":[
-    ]
+    "compatible_engines": [],
+    "engine_api_dependencies": []
 }

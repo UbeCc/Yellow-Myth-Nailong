@@ -3,12 +3,13 @@
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Math/Transform.h>
+#include <AzCore/Math/Matrix3x3.h>
+#include <AzCore/Math/Quaternion.h>
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <AzCore/Console/ILogger.h>
-#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentBus.h>
-#include <AtomLyIntegration/CommonFeatures/Material/MaterialAssignmentId.h>
-
+#include <Atom/RPI.Public/ViewportContextBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
 
 namespace YellowMythNailong
 {
@@ -22,7 +23,7 @@ namespace YellowMythNailong
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<PlayerControllerComponent, AZ::Component>()
-                ->Version(2)
+                ->Version(3)
                 ->Field("MoveSpeed", &PlayerControllerComponent::m_moveSpeed)
                 ->Field("DodgeSpeed", &PlayerControllerComponent::m_dodgeSpeed)
                 ->Field("DodgeDuration", &PlayerControllerComponent::m_dodgeDuration)
@@ -31,6 +32,9 @@ namespace YellowMythNailong
                 ->Field("AttackDamage", &PlayerControllerComponent::m_attackDamage)
                 ->Field("MaxHealth", &PlayerControllerComponent::m_maxHealth)
                 ->Field("CameraEntityId", &PlayerControllerComponent::m_cameraEntityId)
+                ->Field("CameraDistance", &PlayerControllerComponent::m_cameraDistance)
+                ->Field("CameraHeight", &PlayerControllerComponent::m_cameraHeight)
+                ->Field("CameraLookAtHeight", &PlayerControllerComponent::m_cameraLookAtHeight)
                 ;
 
             if (AZ::EditContext* editContext = serializeContext->GetEditContext())
@@ -47,6 +51,9 @@ namespace YellowMythNailong
                     ->DataElement(AZ::Edit::UIHandlers::Default, &PlayerControllerComponent::m_attackDamage, "Attack Damage", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &PlayerControllerComponent::m_maxHealth, "Max Health", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &PlayerControllerComponent::m_cameraEntityId, "Camera Entity", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &PlayerControllerComponent::m_cameraDistance, "Camera Distance", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &PlayerControllerComponent::m_cameraHeight, "Camera Height", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &PlayerControllerComponent::m_cameraLookAtHeight, "Camera Look-At Height", "")
                     ;
             }
         }
@@ -62,6 +69,10 @@ namespace YellowMythNailong
         AZ::TickBus::Handler::BusConnect();
         CombatNotificationBus::Handler::BusConnect();
         AzFramework::InputChannelEventListener::Connect();
+
+        // TransformComponent ignores the prefab "Scale" field at runtime; set the
+        // Nailong dragon to a playable size (~2 m tall from the 385 m source model).
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, 0.005f);
 
         m_health = m_maxHealth;
         m_keyW = m_keyA = m_keyS = m_keyD = m_keySpace = false;
@@ -123,25 +134,6 @@ namespace YellowMythNailong
 
     void PlayerControllerComponent::OnTick(float deltaTime, AZ::ScriptTimePoint /*time*/)
     {
-        if (!m_loggedMaterialSlot)
-        {
-            m_loggedMaterialSlot = true;
-            AZ::Render::MaterialAssignmentMap materialMap;
-            AZ::Render::MaterialComponentRequestBus::EventResult(materialMap, GetEntityId(), &AZ::Render::MaterialComponentRequestBus::Events::GetMaterialMapCopy);
-            AZ_Printf("PlayerControllerComponent", "Nailong material map size: %zu", materialMap.size());
-            for (const auto& pair : materialMap)
-            {
-                AZ_Printf("PlayerControllerComponent", "Nailong material slot stable id: %u lod: %u", pair.first.m_materialSlotStableId, pair.first.m_lodIndex);
-            }
-            AZ::Render::MaterialAssignmentMap defaultMap;
-            AZ::Render::MaterialComponentRequestBus::EventResult(defaultMap, GetEntityId(), &AZ::Render::MaterialComponentRequestBus::Events::GetDefaultMaterialMap);
-            AZ_Printf("PlayerControllerComponent", "Nailong default map size: %zu", defaultMap.size());
-            for (const auto& pair : defaultMap)
-            {
-                AZ_Printf("PlayerControllerComponent", "Nailong default slot stable id: %u lod: %u", pair.first.m_materialSlotStableId, pair.first.m_lodIndex);
-            }
-        }
-
         if (m_health <= 0.0f)
         {
             return;
@@ -184,6 +176,7 @@ namespace YellowMythNailong
         m_attackRequested = false;
         m_inputDirection = AZ::Vector3::CreateZero();
 
+        TryFindCameraEntity();
         UpdateCamera();
     }
 
@@ -234,7 +227,7 @@ namespace YellowMythNailong
 
         float speed = m_isDodging ? m_dodgeSpeed : m_moveSpeed;
         AZ::Vector3 newPos = currentTranslation + direction * speed * deltaTime;
-        newPos.SetZ(0.5f); // keep on ground
+        newPos.SetZ(0.0f); // keep on ground
 
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, newPos);
 
@@ -280,11 +273,11 @@ namespace YellowMythNailong
 
         appRequests->EnumerateEntities([this](AZ::Entity* entity)
         {
-            if (entity && entity->GetName() == "NailongCamera")
+            if (entity && (entity->GetName() == "Camera" || entity->GetName() == "NailongCamera"))
             {
                 m_cameraEntityId = entity->GetId();
-                AZLOG_INFO("PlayerControllerComponent: found NailongCamera entity %s", m_cameraEntityId.ToString().c_str());
-                return false; // stop enumeration
+                // Camera entity located; no per-frame log.
+                return false;
             }
             return true;
         });
@@ -292,23 +285,38 @@ namespace YellowMythNailong
 
     void PlayerControllerComponent::UpdateCamera()
     {
-        if (!m_cameraEntityId.IsValid())
-        {
-            return;
-        }
-
         AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(playerPos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
 
-        AZ::Vector3 cameraOffset(-4.0f, -8.0f, 4.0f);
-        AZ::Vector3 targetPos = playerPos + cameraOffset;
-        AZ::TransformBus::Event(m_cameraEntityId, &AZ::TransformInterface::SetWorldTranslation, targetPos);
+        AZ::Quaternion playerRotation = AZ::Quaternion::CreateIdentity();
+        AZ::TransformBus::EventResult(playerRotation, GetEntityId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
 
-        AZ::Vector3 lookAt = playerPos;
-        lookAt.SetZ(1.0f);
-        AZ::Vector3 forward = (lookAt - targetPos).GetNormalized();
-        float yaw = atan2(forward.GetX(), forward.GetY());
-        AZ::Quaternion rot = AZ::Quaternion::CreateRotationZ(yaw);
-        AZ::TransformBus::Event(m_cameraEntityId, &AZ::TransformInterface::SetWorldRotationQuaternion, rot);
+        // Third-person offset: behind the player (-Y) and above (+Z).
+        const AZ::Vector3 relativeOffset(0.0f, -m_cameraDistance, m_cameraHeight);
+        const AZ::Vector3 cameraPos = playerPos + playerRotation.TransformVector(relativeOffset);
+        const AZ::Vector3 lookAtPos = playerPos + AZ::Vector3(0.0f, 0.0f, m_cameraLookAtHeight);
+
+        // The camera's view forward axis is +Y in O3DE; CreateLookAt's third
+        // argument selects which local basis axis aims at the target.
+        const AZ::Transform cameraTransform = AZ::Transform::CreateLookAt(
+            cameraPos, lookAtPos, AZ::Transform::Axis::YPositive);
+
+        if (m_cameraEntityId.IsValid())
+        {
+            AZ::TransformBus::Event(m_cameraEntityId, &AZ::TransformInterface::SetWorldTM, cameraTransform);
+            // Ensure the runtime camera remains the active view so the viewport context
+            // is driven by the Camera component system rather than being manually overridden.
+            Camera::CameraRequestBus::Event(m_cameraEntityId, &Camera::CameraRequestBus::Events::MakeActiveView);
+        }
+
+        // Also update the viewport context directly as a fallback in case the Camera
+        // system has not yet taken ownership of the default viewport.
+        if (auto viewportContextManager = AZ::RPI::ViewportContextRequests::Get())
+        {
+            if (auto viewportContext = viewportContextManager->GetDefaultViewportContext())
+            {
+                viewportContext->SetCameraTransform(cameraTransform);
+            }
+        }
     }
 } // namespace YellowMythNailong

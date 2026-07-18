@@ -36,7 +36,9 @@ ly_add_target(
             Gem::Atom_AtomBridge.Static
             Gem::Atom_Feature_Common
             Gem::CommonFeaturesAtom
+            Gem::Atom_RPI.Public
             Gem::Atom_Component_DebugCamera.Static
+            Gem::Camera
             Gem::StartingPointInput
 )
 

@@ -42,7 +42,8 @@
         "TextureAtlas",
         "WhiteBox",
         "RemoteTools",
-        "Atom_Component_DebugCamera"
+        "Atom_Component_DebugCamera",
+        "Camera"
     ],
     "engine_version": "2.6.0"
 }

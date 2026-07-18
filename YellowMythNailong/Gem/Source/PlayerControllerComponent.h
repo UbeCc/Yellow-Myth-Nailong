@@ -62,7 +62,6 @@ namespace YellowMythNailong
         AZ::Vector3 m_dodgeDirection = AZ::Vector3::CreateZero();
         float m_attackTimer = 0.0f;
         bool m_attackRequested = false;
-        bool m_loggedMaterialSlot = false;
 
         // Raw key state tracking
         bool m_keyW = false;
@@ -70,6 +69,11 @@ namespace YellowMythNailong
         bool m_keyS = false;
         bool m_keyD = false;
         bool m_keySpace = false;
+
+        // Third-person camera settings
+        float m_cameraDistance = 6.0f;
+        float m_cameraHeight = 2.5f;
+        float m_cameraLookAtHeight = 1.5f;
 
         AZ::EntityId m_cameraEntityId;
     };

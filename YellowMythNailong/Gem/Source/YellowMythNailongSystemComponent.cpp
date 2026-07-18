@@ -3,17 +3,18 @@
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Console/ILogger.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
+#include <AzCore/Component/TickBus.h>
 
 #include <AzFramework/Entity/EntityContextBus.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
 #include <AzFramework/Components/CameraBus.h>
-#include <AzCore/Component/TransformBus.h>
-
-#include <Atom/Component/DebugCamera/CameraComponent.h>
-
 #include <Atom/RPI.Public/ViewportContextBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewGroup.h>
 #include <Atom/RPI.Public/ViewProviderBus.h>
+#include <Atom/RPI.Public/RPISystemInterface.h>
+#include <AtomLyIntegration/CommonFeatures/CoreLights/CoreLightsConstants.h>
+#include <AzCore/Component/TransformBus.h>
 
 #include "PlayerControllerComponent.h"
 
@@ -85,29 +86,94 @@ namespace YellowMythNailong
 
     void YellowMythNailongSystemComponent::Deactivate()
     {
+        AZ::TickBus::Handler::BusDisconnect();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
         AzFramework::GameEntityContextEventBus::Handler::BusDisconnect();
         YellowMythNailongRequestBus::Handler::BusDisconnect();
     }
 
-    void YellowMythNailongSystemComponent::OnEntityContextLoadedFromStream(const AzFramework::EntityList& contextEntities)
+
+    void YellowMythNailongSystemComponent::OnEntityContextLoadedFromStream(const AzFramework::EntityList& /*contextEntities*/)
     {
-        AZLOG_INFO("NailongSystem: OnEntityContextLoadedFromStream with %zu entities", contextEntities.size());
-        for (AZ::Entity* entity : contextEntities)
-        {
-            if (!entity)
-            {
-                continue;
-            }
-            const AZStd::string name = entity->GetName();
-            AZLOG_INFO("NailongSystem: loaded entity '%s' id=%s", name.c_str(), entity->GetId().ToString().c_str());
-        }
     }
 
     void YellowMythNailongSystemComponent::OnGameEntitiesStarted()
     {
-        AZLOG_INFO("NailongSystem: OnGameEntitiesStarted");
-        SetupRuntimeCamera();
+        if (CanCreateRuntimeCamera())
+        {
+            SetupRuntimeCamera();
+            CreateRuntimeSun();
+        }
+        else
+        {
+            // RPI is not ready yet; retry on the next tick.
+            AZ::TickBus::Handler::BusConnect();
+        }
+    }
+
+    void YellowMythNailongSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    {
+        if (CanCreateRuntimeCamera())
+        {
+            SetupRuntimeCamera();
+            CreateRuntimeSun();
+            AZ::TickBus::Handler::BusDisconnect();
+        }
+    }
+
+    bool YellowMythNailongSystemComponent::CanCreateRuntimeCamera() const
+    {
+        auto* rpiSystem = AZ::RPI::RPISystemInterface::Get();
+        return rpiSystem && rpiSystem->IsInitialized();
+    }
+
+    void YellowMythNailongSystemComponent::CreateRuntimeSun()
+    {
+        AzFramework::EntityContextId contextId = AzFramework::EntityContextId::CreateNull();
+        AzFramework::GameEntityContextRequestBus::BroadcastResult(
+            contextId, &AzFramework::GameEntityContextRequests::GetGameEntityContextId);
+        if (contextId.IsNull())
+        {
+            return;
+        }
+
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (appRequests)
+        {
+            bool found = false;
+            appRequests->EnumerateEntities([&found](AZ::Entity* entity)
+            {
+                if (entity && entity->GetName() == "NailongSun")
+                {
+                    found = true;
+                    return false;
+                }
+                return true;
+            });
+            if (found)
+            {
+                return;
+            }
+        }
+
+        AZ::Entity* sunEntity = nullptr;
+        AzFramework::EntityContextRequestBus::EventResult(
+            sunEntity, contextId, &AzFramework::EntityContextRequests::CreateEntity, "NailongSun");
+        if (!sunEntity)
+        {
+            AZLOG_WARN("NailongSystem: failed to create runtime sun entity");
+            return;
+        }
+
+        sunEntity->CreateComponent(AZ::TransformComponentTypeId);
+        sunEntity->CreateComponent(AZ::Render::DirectionalLightComponentTypeId);
+        sunEntity->Activate();
+
+        AZ::Vector3 sunPos(0.0f, -20.0f, 30.0f);
+        AZ::Vector3 lookAt(0.0f, 0.0f, 0.0f);
+        AZ::Transform sunTransform = AZ::Transform::CreateLookAt(sunPos, lookAt, AZ::Transform::Axis::ZPositive);
+        AZ::TransformBus::Event(sunEntity->GetId(), &AZ::TransformInterface::SetWorldTM, sunTransform);
+        AZLOG_INFO("NailongSystem: created runtime sun entity %s", sunEntity->GetId().ToString().c_str());
     }
 
     void YellowMythNailongSystemComponent::SetupRuntimeCamera()
@@ -126,24 +192,58 @@ namespace YellowMythNailong
             return;
         }
 
-        AZ::Entity* cameraEntity = nullptr;
-        AzFramework::EntityContextRequestBus::EventResult(
-            cameraEntity, contextId, &AzFramework::EntityContextRequests::CreateEntity, "NailongCamera");
-        if (!cameraEntity)
+        // Look for an existing runtime camera first (prefab Camera entities are editor-only by default).
+        AZ::Entity* existingCamera = nullptr;
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (appRequests)
         {
-            AZLOG_WARN("NailongSystem: failed to create runtime camera entity");
-            return;
+            appRequests->EnumerateEntities([&existingCamera](AZ::Entity* entity)
+            {
+                if (entity && entity->GetName() == "NailongCamera")
+                {
+                    existingCamera = entity;
+                    return false;
+                }
+                return true;
+            });
         }
 
-        cameraEntity->CreateComponent(AZ::TransformComponentTypeId);
-        cameraEntity->CreateComponent<AZ::Debug::CameraComponent>();
-        cameraEntity->Activate();
-        m_runtimeCameraId = cameraEntity->GetId();
-        Camera::CameraRequestBus::Event(m_runtimeCameraId, &Camera::CameraRequestBus::Events::MakeActiveView);
-        AZLOG_INFO("NailongSystem: created runtime camera entity %s", m_runtimeCameraId.ToString().c_str());
+        if (existingCamera)
+        {
+            m_runtimeCameraId = existingCamera->GetId();
+        }
+        else
+        {
+            AZ::Entity* cameraEntity = nullptr;
+            AzFramework::EntityContextRequestBus::EventResult(
+                cameraEntity, contextId, &AzFramework::EntityContextRequests::CreateEntity, "NailongCamera");
+            if (!cameraEntity)
+            {
+                AZLOG_WARN("NailongSystem: failed to create runtime camera entity");
+                return;
+            }
 
-        // The DebugCamera MakeActiveView is a no-op; push its view onto the default viewport context
-        // so the standalone launcher actually renders through it.
+            cameraEntity->CreateComponent(AZ::TransformComponentTypeId);
+            cameraEntity->CreateComponent(CameraComponentTypeId);
+            cameraEntity->Activate();
+            m_runtimeCameraId = cameraEntity->GetId();
+        }
+
+        // Initial third-person framing; the player controller refines this every tick.
+        const AZ::Vector3 cameraPosition(0.0f, -6.0f, 2.5f);
+        const AZ::Vector3 lookAtPosition(0.0f, 0.0f, 1.5f);
+
+        AZ::Transform cameraTransform = AZ::Transform::CreateLookAt(
+            cameraPosition,
+            lookAtPosition,
+            AZ::Transform::Axis::YPositive);
+        AZ::TransformBus::Event(m_runtimeCameraId, &AZ::TransformInterface::SetWorldTM, cameraTransform);
+
+        Camera::CameraRequestBus::Event(m_runtimeCameraId, &Camera::CameraRequestBus::Events::MakeActiveView);
+
+        // Some standalone launcher viewport contexts are not registered under the
+        // default viewport context name, so MakeActiveView alone is not always
+        // enough. Push the runtime camera view onto every registered viewport context.
         AZ::RPI::ViewPtr cameraView;
         AZ::RPI::ViewProviderBus::EventResult(
             cameraView, m_runtimeCameraId, &AZ::RPI::ViewProviderBus::Events::GetView);
@@ -155,48 +255,40 @@ namespace YellowMythNailong
 
             if (auto* viewportRequests = AZ::RPI::ViewportContextRequests::Get())
             {
-                viewportRequests->PushViewGroup(viewportRequests->GetDefaultViewportContextName(), cameraViewGroup);
-                AZLOG_INFO("NailongSystem: pushed runtime camera view group to default viewport context");
+                viewportRequests->EnumerateViewportContexts(
+                    [&cameraViewGroup](AZ::RPI::ViewportContextPtr viewportContext)
+                    {
+                        if (viewportContext)
+                        {
+                            AZ::RPI::ViewportContextRequests::Get()->PushViewGroup(
+                                viewportContext->GetName(), cameraViewGroup);
+                        }
+                    });
             }
-            else
+        }
+
+        bool isActive = false;
+        Camera::CameraRequestBus::EventResult(isActive, m_runtimeCameraId, &Camera::CameraRequestBus::Events::IsActiveView);
+        AZLOG_INFO("NailongSystem: runtime camera %s active=%d", m_runtimeCameraId.ToString().c_str(), isActive);
+
+        // Hand the camera off to the player controller so it follows the character.
+        if (appRequests)
+        {
+            appRequests->EnumerateEntities([this](AZ::Entity* entity)
             {
-                AZLOG_WARN("NailongSystem: ViewportContextRequests not available");
-            }
-        }
-        else
-        {
-            AZLOG_WARN("NailongSystem: failed to get runtime camera view");
-        }
-
-        WirePlayerCamera();
-    }
-
-    void YellowMythNailongSystemComponent::WirePlayerCamera()
-    {
-        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
-        if (!appRequests)
-        {
-            return;
-        }
-
-        appRequests->EnumerateEntities([this](AZ::Entity* entity)
-        {
-            if (!entity || entity->GetName() != "NailongPlayer")
-            {
+                if (entity && entity->GetName() == "NailongPlayer")
+                {
+                    PlayerControllerComponent* controller = entity->FindComponent<PlayerControllerComponent>();
+                    if (controller)
+                    {
+                        controller->SetCameraEntityId(m_runtimeCameraId);
+                        AZLOG_INFO("NailongSystem: assigned runtime camera to player controller");
+                    }
+                    return false;
+                }
                 return true;
-            }
-
-            if (auto* playerCtrl = entity->FindComponent<PlayerControllerComponent>())
-            {
-                playerCtrl->SetCameraEntityId(m_runtimeCameraId);
-                AZLOG_INFO("NailongSystem: wired PlayerControllerComponent camera id %s", m_runtimeCameraId.ToString().c_str());
-            }
-            else
-            {
-                AZLOG_WARN("NailongSystem: PlayerControllerComponent not found on NailongPlayer");
-            }
-            return false;
-        });
+            });
+        }
     }
 
 } // namespace YellowMythNailong

@@ -59,6 +59,7 @@ namespace YellowMythNailong
         AZ::TickBus::Handler::BusConnect();
         CombatNotificationBus::Handler::BusConnect();
         m_health = m_maxHealth;
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, 0.02f);
 
         TryFindPlayerEntity();
     }
