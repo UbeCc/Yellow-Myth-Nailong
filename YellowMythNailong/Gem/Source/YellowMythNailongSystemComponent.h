@@ -42,6 +42,7 @@ namespace YellowMythNailong
 
     private:
         void SetupRuntimeCamera();
+        void WirePlayerCamera();
 
         AZ::EntityId m_runtimeCameraId;
     };
