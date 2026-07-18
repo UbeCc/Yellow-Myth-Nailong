@@ -1,4 +1,4 @@
-# Yellow Myth: Nailong
+# 黑神话奶龙 · Yellow Myth: Nailong
 
 一个致敬《黑神话：悟空》的 3D 动作原型，主角为原创“奶龙风格”小黄龙。使用 Open 3D Engine (O3DE) 26.05 与 Atom 渲染器。
 
@@ -16,6 +16,10 @@
 - O3DE 26.05（已安装到 `/opt/O3DE/26.05`）
 - Linux (Ubuntu 24.04) + Vulkan 显卡
 - Python 3（O3DE 自带）
+- 远程游玩额外需求：
+  - shouyun1 上已有 NVIDIA X display `:2`
+  - `x11vnc` 在端口 `5902` 共享该显示器
+  - `openbox` 作为窗口管理器（`run_game.sh` 会自动拉起）
 
 ## 构建与运行（Linux）
 
@@ -34,22 +38,55 @@
    cd Yellow-Myth-Nailong/YellowMythNailong/build/linux
    ninja YellowMythNailong.GameLauncher
    ```
-4. 运行：
-   ```bash
-   cd Yellow-Myth-Nailong/YellowMythNailong
-   ./build/linux/bin/profile/YellowMythNailong.GameLauncher
-   ```
-   启动时会通过 `autoexec.cfg` 自动加载 `DefaultLevel`。
 
-   若通过远程桌面/VNC 运行，需设置对应显示号，例如：
+### 在 shouyun1 上直接游玩
+
+```bash
+/root/Yellow-Myth-Nailong/run_game.sh
+```
+
+等价手动命令：
+
+```bash
+export DISPLAY=:2
+ulimit -n 65536
+cd /root/Yellow-Myth-Nailong/YellowMythNailong/build/linux/bin/profile
+./YellowMythNailong.GameLauncher \
+    --project-path=/root/Yellow-Myth-Nailong/YellowMythNailong \
+    --rhi=Vulkan
+```
+
+启动后如果弹出 Asset Processor 的 *Startup Errors* 对话框（通常是 ALSA 音频警告），直接关闭即可进入游戏画面。
+
+### 无显示环境验证
+
+```bash
+./build/linux/bin/profile/YellowMythNailong.GameLauncher --rhi=Null -bg_ConnectToAssetProcessor=0
+```
+
+## 从 macOS 远程游玩
+
+1. 在本地 Mac 终端建立 SSH 隧道（保持运行）：
+
    ```bash
-   DISPLAY=:2 ./build/linux/bin/profile/YellowMythNailong.GameLauncher
+   ssh -L 5902:localhost:5902 -N shouyun1
    ```
 
-   无显示环境时可用 Null RHI 做命令行/CI 验证：
+2. 使用 macOS 自带的屏幕共享连接：
+
    ```bash
-   ./build/linux/bin/profile/YellowMythNailong.GameLauncher --rhi=Null -bg_ConnectToAssetProcessor=0
+   open vnc://localhost:5902
    ```
+
+   `x11vnc` 未设置密码，连接时按提示选择 **继续**（未加密）即可。
+
+3. 在 VNC 桌面里打开终端，运行：
+
+   ```bash
+   /root/Yellow-Myth-Nailong/run_game.sh
+   ```
+
+4. 游戏窗口会出现在 VNC 桌面中，即可用鼠标键盘操作。
 
 ## 操作
 
@@ -69,6 +106,7 @@ YellowMythNailong/       # O3DE 项目
   Registry/              # 引擎配置
 Assets-Source/           # 原始资产来源与授权说明
 Docs/OriginalAssets/     # 原始 FBX 等不参与资产处理的归档
+run_game.sh              # shouyun1 一键启动脚本
 ```
 
 ## macOS / Windows 可移植性
