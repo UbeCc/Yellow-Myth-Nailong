@@ -75,10 +75,10 @@ cd /root/Yellow-Myth-Nailong/YellowMythNailong/build/linux/bin/profile
 2. 使用 macOS 自带的屏幕共享连接：
 
    ```bash
-   open vnc://localhost:5902
+   open vnc://:nailong@localhost:5902
    ```
 
-   `x11vnc` 未设置密码，连接时按提示选择 **继续**（未加密）即可。
+   VNC 密码是 `nailong`，连接时输入即可（流量走 SSH 隧道，仍是加密的）。
 
 3. 在 VNC 桌面里打开终端，运行：
 
