@@ -1,7 +1,9 @@
-
 #pragma once
 
 #include <AzCore/Component/Component.h>
+#include <AzCore/Component/Entity.h>
+#include <AzFramework/Entity/EntityContextBus.h>
+#include <AzFramework/Entity/GameEntityContextBus.h>
 
 #include <YellowMythNailong/YellowMythNailongBus.h>
 
@@ -10,6 +12,8 @@ namespace YellowMythNailong
     class YellowMythNailongSystemComponent
         : public AZ::Component
         , protected YellowMythNailongRequestBus::Handler
+        , protected AzFramework::GameEntityContextEventBus::Handler
+        , protected AzFramework::EntityContextEventBus::Handler
     {
     public:
         AZ_COMPONENT_DECL(YellowMythNailongSystemComponent);
@@ -25,16 +29,20 @@ namespace YellowMythNailong
         ~YellowMythNailongSystemComponent();
 
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // YellowMythNailongRequestBus interface implementation
-
-        ////////////////////////////////////////////////////////////////////////
-
-        ////////////////////////////////////////////////////////////////////////
         // AZ::Component interface implementation
         void Init() override;
         void Activate() override;
         void Deactivate() override;
-        ////////////////////////////////////////////////////////////////////////
+
+        // AzFramework::GameEntityContextEventBus
+        void OnGameEntitiesStarted() override;
+
+        // AzFramework::EntityContextEventBus
+        void OnEntityContextLoadedFromStream(const AzFramework::EntityList& contextEntities) override;
+
+    private:
+        void SetupRuntimeCamera();
+
+        AZ::EntityId m_runtimeCameraId;
     };
-}
+} // namespace YellowMythNailong

@@ -41,7 +41,8 @@
         "StartingPointInput",
         "TextureAtlas",
         "WhiteBox",
-        "RemoteTools"
+        "RemoteTools",
+        "Atom_Component_DebugCamera"
     ],
     "engine_version": "2.6.0"
 }

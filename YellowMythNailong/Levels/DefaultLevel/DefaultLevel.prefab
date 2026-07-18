@@ -152,7 +152,26 @@
                 },
                 "Component_[5182430712893438093]": {
                     "$type": "EditorMaterialComponent",
-                    "Id": 5182430712893438093
+                    "Id": 5182430712893438093,
+                    "Controller": {
+                        "Configuration": {
+                            "materials": [
+                                {
+                                    "Key": {
+                                        "materialSlotStableId": 4294967295
+                                    },
+                                    "Value": {
+                                        "MaterialAsset": {
+                                            "assetId": {
+                                                "guid": "{02C0493A-658A-56BB-9A79-0ACB066FCF63}"
+                                            },
+                                            "assetHint": "assets/materials/ground.azmaterial"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
                 },
                 "Component_[5245524694917323904]": {
                     "$type": "EditorColliderComponent",
@@ -249,14 +268,14 @@
                     "Parent Entity": "Entity_[1176639161715]",
                     "Transform Data": {
                         "Translate": [
-                            -2.3000001907348633,
-                            -3.9368600845336914,
-                            1.0
+                            0.0,
+                            -6.0,
+                            3.5
                         ],
                         "Rotate": [
-                            -2.050307512283325,
-                            1.9552897214889526,
-                            -43.623355865478516
+                            -25.0,
+                            0.0,
+                            0.0
                         ]
                     }
                 },
@@ -272,13 +291,6 @@
                     "$type": "EditorPendingCompositionComponent",
                     "Id": 7169798125182238623
                 },
-                "Component_[7255796294953281766]": {
-                    "$type": "GenericComponentWrapper",
-                    "Id": 7255796294953281766,
-                    "m_template": {
-                        "$type": "FlyCameraInputComponent"
-                    }
-                },
                 "Component_[8866210352157164042]": {
                     "$type": "EditorInspectorComponent",
                     "Id": 8866210352157164042
@@ -286,134 +298,6 @@
                 "Component_[9129253381063760879]": {
                     "$type": "EditorOnlyEntityComponent",
                     "Id": 9129253381063760879
-                }
-            }
-        },
-        "Entity_[1168049227123]": {
-            "Id": "Entity_[1168049227123]",
-            "Name": "Grid",
-            "Components": {
-                "Component_[11443347433215807130]": {
-                    "$type": "EditorEntityIconComponent",
-                    "Id": 11443347433215807130
-                },
-                "Component_[14249419413039427459]": {
-                    "$type": "EditorInspectorComponent",
-                    "Id": 14249419413039427459
-                },
-                "Component_[15448581635946161318]": {
-                    "$type": "AZ::Render::EditorGridComponent",
-                    "Id": 15448581635946161318,
-                    "Controller": {
-                        "Configuration": {
-                            "primarySpacing": 4.0,
-                            "primaryColor": [
-                                0.501960813999176,
-                                0.501960813999176,
-                                0.501960813999176
-                            ],
-                            "secondarySpacing": 0.5,
-                            "secondaryColor": [
-                                0.250980406999588,
-                                0.250980406999588,
-                                0.250980406999588
-                            ]
-                        }
-                    }
-                },
-                "Component_[1843303322527297409]": {
-                    "$type": "EditorDisabledCompositionComponent",
-                    "Id": 1843303322527297409
-                },
-                "Component_[380249072065273654]": {
-                    "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
-                    "Id": 380249072065273654,
-                    "Parent Entity": "Entity_[1176639161715]"
-                },
-                "Component_[7476660583684339787]": {
-                    "$type": "EditorPendingCompositionComponent",
-                    "Id": 7476660583684339787
-                },
-                "Component_[7557626501215118375]": {
-                    "$type": "EditorEntitySortComponent",
-                    "Id": 7557626501215118375
-                },
-                "Component_[7984048488947365511]": {
-                    "$type": "EditorVisibilityComponent",
-                    "Id": 7984048488947365511
-                },
-                "Component_[8118181039276487398]": {
-                    "$type": "EditorOnlyEntityComponent",
-                    "Id": 8118181039276487398
-                },
-                "Component_[9189909764215270515]": {
-                    "$type": "EditorLockComponent",
-                    "Id": 9189909764215270515
-                }
-            }
-        },
-        "Entity_[1172344194419]": {
-            "Id": "Entity_[1172344194419]",
-            "Name": "Shader Ball",
-            "Components": {
-                "Component_[10789351944715265527]": {
-                    "$type": "EditorOnlyEntityComponent",
-                    "Id": 10789351944715265527
-                },
-                "Component_[12037033284781049225]": {
-                    "$type": "EditorEntitySortComponent",
-                    "Id": 12037033284781049225
-                },
-                "Component_[13759153306105970079]": {
-                    "$type": "EditorPendingCompositionComponent",
-                    "Id": 13759153306105970079
-                },
-                "Component_[14135560884830586279]": {
-                    "$type": "EditorInspectorComponent",
-                    "Id": 14135560884830586279
-                },
-                "Component_[16247165675903986673]": {
-                    "$type": "EditorVisibilityComponent",
-                    "Id": 16247165675903986673
-                },
-                "Component_[18082433625958885247]": {
-                    "$type": "EditorDisabledCompositionComponent",
-                    "Id": 18082433625958885247
-                },
-                "Component_[6472623349872972660]": {
-                    "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
-                    "Id": 6472623349872972660,
-                    "Parent Entity": "Entity_[1176639161715]",
-                    "Transform Data": {
-                        "Rotate": [
-                            0.0,
-                            0.10000000149011612,
-                            180.0
-                        ]
-                    }
-                },
-                "Component_[6495255223970673916]": {
-                    "$type": "AZ::Render::EditorMeshComponent",
-                    "Id": 6495255223970673916,
-                    "Controller": {
-                        "Configuration": {
-                            "ModelAsset": {
-                                "assetId": {
-                                    "guid": "{FD340C30-755C-5911-92A3-19A3F7A77931}",
-                                    "subId": 281415304
-                                },
-                                "assetHint": "objects/shaderball/shaderball_default_1m.azmodel"
-                            }
-                        }
-                    }
-                },
-                "Component_[8550141614185782969]": {
-                    "$type": "EditorEntityIconComponent",
-                    "Id": 8550141614185782969
-                },
-                "Component_[9439770997198325425]": {
-                    "$type": "EditorLockComponent",
-                    "Id": 9439770997198325425
                 }
             }
         },
@@ -461,10 +345,11 @@
                     "Child Entity Order": [
                         "Entity_[1155164325235]",
                         "Entity_[1180934129011]",
-                        "Entity_[1172344194419]",
-                        "Entity_[1168049227123]",
                         "Entity_[1163754259827]",
-                        "Entity_[1159459292531]"
+                        "Entity_[1159459292531]",
+                        "Entity_20000000000000",
+                        "Entity_20000000000001",
+                        "Entity_20000000000002"
                     ]
                 },
                 "Component_[9277695270015777859]": {
@@ -550,6 +435,262 @@
                 "Component_[931091830724002070]": {
                     "$type": "EditorInspectorComponent",
                     "Id": 931091830724002070
+                }
+            }
+        },
+        "Entity_20000000000000": {
+            "Id": "Entity_20000000000000",
+            "Name": "NailongPlayer",
+            "Components": {
+                "Component_[2000000000000000006]": {
+                    "$type": "EditorEntityIconComponent",
+                    "Id": 2000000000000000006
+                },
+                "Component_[2000000000000000007]": {
+                    "$type": "EditorLockComponent",
+                    "Id": 2000000000000000007
+                },
+                "Component_[2000000000000000008]": {
+                    "$type": "EditorVisibilityComponent",
+                    "Id": 2000000000000000008
+                },
+                "Component_[2000000000000000009]": {
+                    "$type": "EditorDisabledCompositionComponent",
+                    "Id": 2000000000000000009
+                },
+                "Component_[2000000000000000010]": {
+                    "$type": "EditorPendingCompositionComponent",
+                    "Id": 2000000000000000010
+                },
+                "Component_[2000000000000000011]": {
+                    "$type": "EditorEntitySortComponent",
+                    "Id": 2000000000000000011
+                },
+                "Component_[2000000000000000012]": {
+                    "$type": "EditorInspectorComponent",
+                    "Id": 2000000000000000012
+                },
+                "Component_[2000000000000000013]": {
+                    "$type": "EditorOnlyEntityComponent",
+                    "Id": 2000000000000000013
+                },
+                "Component_[2000000000000000001]": {
+                    "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+                    "Id": 2000000000000000001,
+                    "Parent Entity": "Entity_[1176639161715]",
+                    "Transform Data": {
+                        "Translate": [
+                            0.0,
+                            0.0,
+                            1.0
+                        ]
+                    }
+                },
+                "Component_[2000000000000000002]": {
+                    "$type": "AZ::Render::EditorMeshComponent",
+                    "Id": 2000000000000000002,
+                    "Controller": {
+                        "Configuration": {
+                            "ModelAsset": {
+                                "assetId": {
+                                    "guid": "{5D4A455D-E584-54ED-ACBA-DE780F1FB00F}",
+                                    "subId": 270370614
+                                },
+                                "assetHint": "materialeditor/viewportmodels/platonicsphere.fbx.azmodel"
+                            }
+                        }
+                    }
+                },
+                "Component_[2000000000000000003]": {
+                    "$type": "EditorMaterialComponent",
+                    "Id": 2000000000000000003,
+                    "Controller": {
+                        "Configuration": {
+                            "materials": [
+                                {
+                                    "Key": {
+                                        "materialSlotStableId": 4294967295
+                                    },
+                                    "Value": {
+                                        "MaterialAsset": {
+                                            "assetId": {
+                                                "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
+                                            },
+                                            "assetHint": "assets/materials/yellownailong.azmaterial"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "Component_[2000000000000000004]": {
+                    "$type": "GenericComponentWrapper",
+                    "Id": 2000000000000000004,
+                    "m_template": {
+                        "$type": "PlayerControllerComponent",
+                        "CameraEntityId": ""
+                    }
+                }
+            }
+        },
+        "Entity_20000000000001": {
+            "Id": "Entity_20000000000001",
+            "Name": "DarkBoss",
+            "Components": {
+                "Component_[2000000000000000024]": {
+                    "$type": "EditorEntityIconComponent",
+                    "Id": 2000000000000000024
+                },
+                "Component_[2000000000000000025]": {
+                    "$type": "EditorLockComponent",
+                    "Id": 2000000000000000025
+                },
+                "Component_[2000000000000000026]": {
+                    "$type": "EditorVisibilityComponent",
+                    "Id": 2000000000000000026
+                },
+                "Component_[2000000000000000027]": {
+                    "$type": "EditorDisabledCompositionComponent",
+                    "Id": 2000000000000000027
+                },
+                "Component_[2000000000000000028]": {
+                    "$type": "EditorPendingCompositionComponent",
+                    "Id": 2000000000000000028
+                },
+                "Component_[2000000000000000029]": {
+                    "$type": "EditorEntitySortComponent",
+                    "Id": 2000000000000000029
+                },
+                "Component_[2000000000000000030]": {
+                    "$type": "EditorInspectorComponent",
+                    "Id": 2000000000000000030
+                },
+                "Component_[2000000000000000031]": {
+                    "$type": "EditorOnlyEntityComponent",
+                    "Id": 2000000000000000031
+                },
+                "Component_[2000000000000000020]": {
+                    "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+                    "Id": 2000000000000000020,
+                    "Parent Entity": "Entity_[1176639161715]",
+                    "Transform Data": {
+                        "Translate": [
+                            8.0,
+                            8.0,
+                            1.0
+                        ],
+                        "Scale": [
+                            2.5,
+                            2.5,
+                            2.5
+                        ]
+                    }
+                },
+                "Component_[2000000000000000021]": {
+                    "$type": "AZ::Render::EditorMeshComponent",
+                    "Id": 2000000000000000021,
+                    "Controller": {
+                        "Configuration": {
+                            "ModelAsset": {
+                                "assetId": {
+                                    "guid": "{8F19FB6D-DF18-5CC0-B921-6755089004D7}",
+                                    "subId": 275006192
+                                },
+                                "assetHint": "materialeditor/viewportmodels/beveledcube.fbx.azmodel"
+                            }
+                        }
+                    }
+                },
+                "Component_[2000000000000000022]": {
+                    "$type": "EditorMaterialComponent",
+                    "Id": 2000000000000000022,
+                    "Controller": {
+                        "Configuration": {
+                            "materials": [
+                                {
+                                    "Key": {
+                                        "materialSlotStableId": 4294967295
+                                    },
+                                    "Value": {
+                                        "MaterialAsset": {
+                                            "assetId": {
+                                                "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                                            },
+                                            "assetHint": "assets/materials/darkboss.azmaterial"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "Component_[2000000000000000032]": {
+                    "$type": "GenericComponentWrapper",
+                    "Id": 2000000000000000032,
+                    "m_template": {
+                        "$type": "BossAIComponent",
+                        "PlayerEntityId": ""
+                    }
+                }
+            }
+        },
+        "Entity_20000000000002": {
+            "Id": "Entity_20000000000002",
+            "Name": "CombatManager",
+            "Components": {
+                "Component_[2000000000000000042]": {
+                    "$type": "EditorEntityIconComponent",
+                    "Id": 2000000000000000042
+                },
+                "Component_[2000000000000000043]": {
+                    "$type": "EditorLockComponent",
+                    "Id": 2000000000000000043
+                },
+                "Component_[2000000000000000044]": {
+                    "$type": "EditorVisibilityComponent",
+                    "Id": 2000000000000000044
+                },
+                "Component_[2000000000000000045]": {
+                    "$type": "EditorDisabledCompositionComponent",
+                    "Id": 2000000000000000045
+                },
+                "Component_[2000000000000000046]": {
+                    "$type": "EditorPendingCompositionComponent",
+                    "Id": 2000000000000000046
+                },
+                "Component_[2000000000000000047]": {
+                    "$type": "EditorEntitySortComponent",
+                    "Id": 2000000000000000047
+                },
+                "Component_[2000000000000000048]": {
+                    "$type": "EditorInspectorComponent",
+                    "Id": 2000000000000000048
+                },
+                "Component_[2000000000000000049]": {
+                    "$type": "EditorOnlyEntityComponent",
+                    "Id": 2000000000000000049
+                },
+                "Component_[2000000000000000040]": {
+                    "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+                    "Id": 2000000000000000040,
+                    "Parent Entity": "Entity_[1176639161715]",
+                    "Transform Data": {
+                        "Translate": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    }
+                },
+                "Component_[2000000000000000050]": {
+                    "$type": "GenericComponentWrapper",
+                    "Id": 2000000000000000050,
+                    "m_template": {
+                        "$type": "CombatManagerComponent",
+                        "PlayerEntityId": "",
+                        "BossEntityId": ""
+                    }
                 }
             }
         }

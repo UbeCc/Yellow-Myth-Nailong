@@ -32,8 +32,12 @@ ly_add_target(
             Include
     BUILD_DEPENDENCIES
         PRIVATE
-            AZ::AzGameFramework
+            AZ::AzFramework
             Gem::Atom_AtomBridge.Static
+            Gem::Atom_Feature_Common
+            Gem::CommonFeaturesAtom
+            Gem::Atom_Component_DebugCamera.Static
+            Gem::StartingPointInput
 )
 
 ly_add_target(
@@ -48,6 +52,8 @@ ly_add_target(
     BUILD_DEPENDENCIES
         PRIVATE
             Gem::${gem_name}.Private.Object
+            Gem::StartingPointInput
+            AZ::AzFramework
             AZ::AzCore
 )
 

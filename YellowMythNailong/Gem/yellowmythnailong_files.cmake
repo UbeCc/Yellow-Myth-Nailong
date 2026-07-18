@@ -1,7 +1,13 @@
-
 set(FILES
     Include/YellowMythNailong/YellowMythNailongBus.h
     Include/YellowMythNailong/YellowMythNailongTypeIds.h
     Source/YellowMythNailongSystemComponent.cpp
     Source/YellowMythNailongSystemComponent.h
+    Source/CombatNotificationBus.h
+    Source/PlayerControllerComponent.cpp
+    Source/PlayerControllerComponent.h
+    Source/BossAIComponent.cpp
+    Source/BossAIComponent.h
+    Source/CombatManagerComponent.cpp
+    Source/CombatManagerComponent.h
 )
