@@ -2,6 +2,7 @@
 
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
+#include <AzCore/Math/Random.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include "CombatNotificationBus.h"
 
@@ -39,6 +40,7 @@ namespace YellowMythNailong
 
         // CombatNotificationBus
         void OnPlayerDamaged(float damage) override;
+        void OnBossDamaged(float damage) override;
         void OnPlayerDied() override;
         void OnRestartGame() override;
 
@@ -48,6 +50,7 @@ namespace YellowMythNailong
         void PerformAttack();
         void UpdateCamera();
         void TryFindCameraEntity();
+        void UpdateVisuals(float deltaTime);
 
         void UpdateMovementFromKeyboard();
 
@@ -57,6 +60,7 @@ namespace YellowMythNailong
         float m_attackCooldown = 0.5f;
         float m_attackRadius = 6.5f;
         float m_attackDamage = 40.0f;
+        float m_comboFinisherDamage = 70.0f;
         float m_maxHealth = 100.0f;
 
         float m_health = 100.0f;
@@ -82,5 +86,20 @@ namespace YellowMythNailong
         bool m_broadcastGameStart = true;
 
         AZ::EntityId m_cameraEntityId;
+
+        // Game feel state.
+        float m_animTime = 0.0f;
+        float m_baseScale = 1.2f;
+        float m_shakeAmplitude = 0.0f;    // camera shake, decays exponentially
+        float m_hitstopTimer = 0.0f;      // brief freeze when a hit connects
+        float m_pulseTimer = 0.0f;        // grow pulse on attack
+        float m_flinchTimer = 0.0f;       // shrink flinch when hurt
+        float m_lungeTimer = 0.0f;        // forward dash during an attack
+        AZ::Vector3 m_lungeDirection = AZ::Vector3::CreateAxisY();
+        float m_lungeSpeed = 0.0f;
+        int m_comboCount = 0;             // 3-hit chain: 40 / 40 / 70 damage
+        float m_comboTimer = 0.0f;
+        float m_deathTimer = 0.0f;        // sink into the ground after defeat
+        AZ::SimpleLcgRandom m_rng;
     };
 } // namespace YellowMythNailong

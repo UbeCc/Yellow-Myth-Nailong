@@ -6,6 +6,7 @@
 #include <AzCore/Component/EntityBus.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <AzCore/Console/ILogger.h>
+#include <AzCore/Math/Random.h>
 
 namespace YellowMythNailong
 {
@@ -59,7 +60,7 @@ namespace YellowMythNailong
         AZ::TickBus::Handler::BusConnect();
         CombatNotificationBus::Handler::BusConnect();
         m_health = m_maxHealth;
-        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, 0.02f);
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale);
 
         TryFindPlayerEntity();
     }
@@ -72,17 +73,41 @@ namespace YellowMythNailong
 
     void BossAIComponent::OnTick(float deltaTime, AZ::ScriptTimePoint /*time*/)
     {
+        // Death animation: tip over and sink into the ground, then hold.
         if (m_health <= 0.0f)
         {
+            if (m_deathTimer > 0.0f)
+            {
+                m_deathTimer -= deltaTime;
+                const float t = AZ::GetClamp(1.0f - m_deathTimer / 2.0f, 0.0f, 1.0f);
+
+                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+                pos.SetZ(0.75f - 3.0f * t);
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, pos);
+
+                AZ::Quaternion roll = AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisX(), t * 1.4f);
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, roll);
+
+                AZ::TransformBus::Event(
+                    GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale * (1.0f - 0.6f * t));
+            }
             return;
         }
+
+        m_animTime += deltaTime;
 
         if (m_attackTimer > 0.0f)
         {
             m_attackTimer -= deltaTime;
         }
+        if (m_chargeTimer > 0.0f)
+        {
+            m_chargeTimer -= deltaTime;
+        }
 
         UpdateAI(deltaTime);
+        UpdateVisuals(deltaTime);
     }
 
     void BossAIComponent::TryFindPlayerEntity()
@@ -118,13 +143,10 @@ namespace YellowMythNailong
             return;
         }
 
-        if (m_state == State::Stagger)
+        // The boss loses interest once its foe is down.
+        if (m_playerDead)
         {
-            m_staggerTimer -= deltaTime;
-            if (m_staggerTimer <= 0.0f)
-            {
-                m_state = State::Chase;
-            }
+            m_state = State::Idle;
             return;
         }
 
@@ -133,6 +155,60 @@ namespace YellowMythNailong
 
         AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(playerPos, m_playerEntityId, &AZ::TransformInterface::GetWorldTranslation);
+
+        if (m_state == State::Stagger)
+        {
+            // Flinch jitter while staggered.
+            AZ::Vector3 jitter(
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * 0.06f,
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * 0.06f, 0.0f);
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, myPos + jitter);
+
+            m_staggerTimer -= deltaTime;
+            if (m_staggerTimer <= 0.0f)
+            {
+                m_state = State::Chase;
+            }
+            return;
+        }
+
+        if (m_state == State::Telegraph)
+        {
+            // Shake in place to warn of the incoming charge.
+            AZ::Vector3 jitter(
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * 0.1f,
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * 0.1f, 0.0f);
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, myPos + jitter);
+
+            m_telegraphTimer -= deltaTime;
+            if (m_telegraphTimer <= 0.0f)
+            {
+                m_state = State::Charge;
+            }
+            return;
+        }
+
+        if (m_state == State::Charge)
+        {
+            AZ::Vector3 toTarget = m_chargeTarget - myPos;
+            toTarget.SetZ(0.0f);
+            const float distance = toTarget.GetLength();
+            if (distance < 0.6f)
+            {
+                // Slam down at the target point.
+                CombatNotificationBus::Broadcast(&CombatNotifications::OnBossAttack, myPos, m_chargeRadius, m_chargeDamage);
+                m_state = State::Chase;
+                m_chargeTimer = m_chargeCooldown;
+                return;
+            }
+            toTarget.Normalize();
+            AZ::Vector3 newPos = myPos + toTarget * m_chargeSpeed * deltaTime;
+            newPos.SetZ(0.75f);
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, newPos);
+            AZ::Quaternion targetRotation = AZ::Quaternion::CreateShortestArc(AZ::Vector3::CreateAxisY(), toTarget);
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, targetRotation);
+            return;
+        }
 
         AZ::Vector3 toPlayer = playerPos - myPos;
         toPlayer.SetZ(0.0f);
@@ -144,6 +220,12 @@ namespace YellowMythNailong
             return;
         }
 
+        if (!m_engaged)
+        {
+            m_engaged = true;
+            CombatNotificationBus::Broadcast(&CombatNotifications::OnBossEngaged);
+        }
+
         m_state = State::Chase;
 
         if (toPlayer.GetLengthSq() > 0.001f)
@@ -153,9 +235,20 @@ namespace YellowMythNailong
             AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, targetRotation);
         }
 
+        // Phase two: periodically telegraph a charge when not already toe to toe.
+        if (m_enraged && m_chargeTimer <= 0.0f && distance > 6.0f)
+        {
+            m_state = State::Telegraph;
+            m_telegraphTimer = m_telegraphDuration;
+            m_chargeTarget = playerPos;
+            return;
+        }
+
         if (distance <= m_attackRange && m_attackTimer <= 0.0f)
         {
             m_state = State::Attack;
+            m_lungeTimer = 0.15f;
+            m_lungeDirection = toPlayer;
             PerformAttack();
             m_attackTimer = m_attackCooldown;
             return;
@@ -163,9 +256,42 @@ namespace YellowMythNailong
 
         if (m_state == State::Chase)
         {
-            AZ::Vector3 newPos = myPos + toPlayer * m_moveSpeed * deltaTime;
-            newPos.SetZ(0.75f); // boss sits slightly higher
+            const float speed = m_enraged ? m_enragedMoveSpeed : m_moveSpeed;
+            AZ::Vector3 newPos = myPos + toPlayer * speed * deltaTime;
+            newPos.SetZ(0.75f);
             AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, newPos);
+        }
+    }
+
+    void BossAIComponent::UpdateVisuals(float deltaTime)
+    {
+        if (m_pulseTimer > 0.0f)
+        {
+            m_pulseTimer -= deltaTime;
+        }
+        // Hit pulse: briefly swell when damaged.
+        const float pulse = m_pulseTimer > 0.0f ? 0.2f * (m_pulseTimer / 0.15f) : 0.0f;
+        const float enrageBulk = m_enraged ? 1.15f : 1.0f;
+        AZ::TransformBus::Event(
+            GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale * enrageBulk * (1.0f + pulse));
+
+        // Attack lunge: a short forward dash adds weight to the swing.
+        if (m_lungeTimer > 0.0f)
+        {
+            m_lungeTimer -= deltaTime;
+            AZ::Vector3 pos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+            AZ::Vector3 newPos = pos + m_lungeDirection * 8.0f * deltaTime;
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, newPos);
+        }
+
+        // Hover bob while alive and not charging.
+        if (m_state != State::Charge)
+        {
+            AZ::Vector3 pos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+            pos.SetZ(0.75f + 0.15f * sinf(m_animTime * 1.8f));
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, pos);
         }
     }
 
@@ -174,27 +300,30 @@ namespace YellowMythNailong
         AZ::Vector3 pos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
         AZLOG_INFO("Boss attacks!");
-        CombatNotificationBus::Broadcast(&CombatNotifications::OnBossAttack, pos, m_attackRadius, m_attackDamage);
-    }
-
-    void BossAIComponent::OnPlayerAttack(const AZ::Vector3& position, float radius, float damage)
-    {
-        AZ::Vector3 myPos = AZ::Vector3::CreateZero();
-        AZ::TransformBus::EventResult(myPos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
-
-        float distSq = (myPos - position).GetLengthSq();
-        if (distSq <= radius * radius)
-        {
-            CombatNotificationBus::Broadcast(&CombatNotifications::OnBossDamaged, damage);
-        }
+        const float damage = m_enraged ? m_enragedAttackDamage : m_attackDamage;
+        CombatNotificationBus::Broadcast(&CombatNotifications::OnBossAttack, pos, m_attackRadius, damage);
     }
 
     void BossAIComponent::OnBossDamaged(float damage)
     {
+        if (m_health <= 0.0f)
+        {
+            return;
+        }
+
         m_health -= damage;
         AZLOG_INFO("Boss health: %.1f", m_health);
+        m_pulseTimer = 0.15f;
         m_state = State::Stagger;
         m_staggerTimer = m_staggerDuration;
+
+        if (!m_enraged && m_health <= m_maxHealth * 0.5f && m_health > 0.0f)
+        {
+            m_enraged = true;
+            AZLOG_INFO("Boss enraged!");
+            CombatNotificationBus::Broadcast(&CombatNotifications::OnBossEnraged);
+        }
+
         if (m_health <= 0.0f)
         {
             CombatNotificationBus::Broadcast(&CombatNotifications::OnBossDied);
@@ -204,6 +333,12 @@ namespace YellowMythNailong
     void BossAIComponent::OnBossDied()
     {
         AZLOG_INFO("Boss defeated!");
+        m_deathTimer = 2.0f;
+    }
+
+    void BossAIComponent::OnPlayerDied()
+    {
+        m_playerDead = true;
     }
 
     void BossAIComponent::OnRestartGame()
@@ -213,6 +348,17 @@ namespace YellowMythNailong
         m_state = State::Idle;
         m_attackTimer = 0.0f;
         m_staggerTimer = 0.0f;
+        m_animTime = 0.0f;
+        m_pulseTimer = 0.0f;
+        m_lungeTimer = 0.0f;
+        m_deathTimer = 0.0f;
+        m_engaged = false;
+        m_enraged = false;
+        m_playerDead = false;
+        m_chargeTimer = 0.0f;
+        m_telegraphTimer = 0.0f;
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale);
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, AZ::Vector3(20.0f, 20.0f, 0.75f));
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, AZ::Quaternion::CreateIdentity());
     }
 } // namespace YellowMythNailong

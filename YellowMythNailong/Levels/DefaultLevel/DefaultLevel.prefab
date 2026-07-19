@@ -686,6 +686,728 @@
           }
         }
       }
+    },
+    "Entity_30000000000000": {
+      "Id": "Entity_30000000000000",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000001]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000001,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              19.59,
+              5.19,
+              0.0
+            ],
+            "Scale": [
+              2.2243754058982512,
+              2.2243754058982512,
+              2.2243754058982512
+            ]
+          }
+        },
+        "Component_[30000000000002]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000002,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000001": {
+      "Id": "Entity_30000000000001",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000011]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000011,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              0.31,
+              22.31,
+              0.0
+            ],
+            "Scale": [
+              3.7808342277095264,
+              3.7808342277095264,
+              3.7808342277095264
+            ]
+          }
+        },
+        "Component_[30000000000012]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000012,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000002": {
+      "Id": "Entity_30000000000002",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000021]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000021,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -14.24,
+              10.41,
+              0.0
+            ],
+            "Scale": [
+              3.0375773729288884,
+              3.0375773729288884,
+              3.0375773729288884
+            ]
+          }
+        },
+        "Component_[30000000000022]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000022,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
+                  "subId": 272434660
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000003": {
+      "Id": "Entity_30000000000003",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000031]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000031,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -21.53,
+              6.74,
+              0.0
+            ],
+            "Scale": [
+              2.3164693513539003,
+              2.3164693513539003,
+              2.3164693513539003
+            ]
+          }
+        },
+        "Component_[30000000000032]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000032,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000004": {
+      "Id": "Entity_30000000000004",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000041]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000041,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -15.05,
+              -11.25,
+              0.0
+            ],
+            "Scale": [
+              2.3300450856196493,
+              2.3300450856196493,
+              2.3300450856196493
+            ]
+          }
+        },
+        "Component_[30000000000042]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000042,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000005": {
+      "Id": "Entity_30000000000005",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000051]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000051,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -3.99,
+              -20.93,
+              0.0
+            ],
+            "Scale": [
+              3.531018291330896,
+              3.531018291330896,
+              3.531018291330896
+            ]
+          }
+        },
+        "Component_[30000000000052]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000052,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
+                  "subId": 272434660
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000006": {
+      "Id": "Entity_30000000000006",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000061]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000061,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              8.5,
+              -22.08,
+              0.0
+            ],
+            "Scale": [
+              3.4280167369929666,
+              3.4280167369929666,
+              3.4280167369929666
+            ]
+          }
+        },
+        "Component_[30000000000062]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000062,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000007": {
+      "Id": "Entity_30000000000007",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000071]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000071,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              21.4,
+              -9.27,
+              0.0
+            ],
+            "Scale": [
+              2.4800412423130918,
+              2.4800412423130918,
+              2.4800412423130918
+            ]
+          }
+        },
+        "Component_[30000000000072]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000072,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000008": {
+      "Id": "Entity_30000000000008",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000081]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000081,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              30.48,
+              1.93,
+              0.0
+            ],
+            "Scale": [
+              2.671241595704556,
+              2.671241595704556,
+              2.671241595704556
+            ]
+          }
+        },
+        "Component_[30000000000082]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000082,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
+                  "subId": 272434660
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000009": {
+      "Id": "Entity_30000000000009",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000091]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000091,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              13.57,
+              32.5,
+              0.0
+            ],
+            "Scale": [
+              2.93528752737291,
+              2.93528752737291,
+              2.93528752737291
+            ]
+          }
+        },
+        "Component_[30000000000092]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000092,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000010": {
+      "Id": "Entity_30000000000010",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000101]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000101,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -6.26,
+              30.95,
+              0.0
+            ],
+            "Scale": [
+              1.9977923374653557,
+              1.9977923374653557,
+              1.9977923374653557
+            ]
+          }
+        },
+        "Component_[30000000000102]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000102,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000011": {
+      "Id": "Entity_30000000000011",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000111]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000111,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -26.39,
+              25.05,
+              0.0
+            ],
+            "Scale": [
+              2.0799921455599617,
+              2.0799921455599617,
+              2.0799921455599617
+            ]
+          }
+        },
+        "Component_[30000000000112]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000112,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
+                  "subId": 272434660
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000012": {
+      "Id": "Entity_30000000000012",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000121]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000121,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -31.63,
+              10.9,
+              0.0
+            ],
+            "Scale": [
+              3.4131972926903877,
+              3.4131972926903877,
+              3.4131972926903877
+            ]
+          }
+        },
+        "Component_[30000000000122]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000122,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000013": {
+      "Id": "Entity_30000000000013",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000131]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000131,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -33.42,
+              -8.31,
+              0.0
+            ],
+            "Scale": [
+              3.0081187222930525,
+              3.0081187222930525,
+              3.0081187222930525
+            ]
+          }
+        },
+        "Component_[30000000000132]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000132,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000014": {
+      "Id": "Entity_30000000000014",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000141]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000141,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -31.39,
+              -21.05,
+              0.0
+            ],
+            "Scale": [
+              2.6814122548311845,
+              2.6814122548311845,
+              2.6814122548311845
+            ]
+          }
+        },
+        "Component_[30000000000142]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000142,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
+                  "subId": 272434660
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000015": {
+      "Id": "Entity_30000000000015",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000151]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000151,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              -8.4,
+              -29.22,
+              0.0
+            ],
+            "Scale": [
+              2.585046776907073,
+              2.585046776907073,
+              2.585046776907073
+            ]
+          }
+        },
+        "Component_[30000000000152]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000152,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000016": {
+      "Id": "Entity_30000000000016",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000161]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000161,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              5.3,
+              -36.81,
+              0.0
+            ],
+            "Scale": [
+              3.4539693017485593,
+              3.4539693017485593,
+              3.4539693017485593
+            ]
+          }
+        },
+        "Component_[30000000000162]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000162,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000017": {
+      "Id": "Entity_30000000000017",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000171]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000171,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              24.68,
+              -25.97,
+              0.0
+            ],
+            "Scale": [
+              2.1873050306525896,
+              2.1873050306525896,
+              2.1873050306525896
+            ]
+          }
+        },
+        "Component_[30000000000172]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000172,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
+                  "subId": 272434660
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Entity_30000000000018": {
+      "Id": "Entity_30000000000018",
+      "Name": "Rock",
+      "Components": {
+        "Component_[30000000000181]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 30000000000181,
+          "Parent Entity": "Entity_[1176639161715]",
+          "Transform Data": {
+            "Translate": [
+              30.17,
+              -10.84,
+              0.0
+            ],
+            "Scale": [
+              1.3870069860258512,
+              1.3870069860258512,
+              1.3870069860258512
+            ]
+          }
+        },
+        "Component_[30000000000182]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 30000000000182,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{EF0A4F47-F65C-5C03-81B6-67070DBEAD}",
+                  "subId": 271803592
+                },
+                "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

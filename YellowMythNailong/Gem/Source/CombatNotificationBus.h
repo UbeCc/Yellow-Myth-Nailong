@@ -24,6 +24,12 @@ namespace YellowMythNailong
         virtual void OnRestartGame() {}
         // Broadcast once when the player first moves/acts (dismisses the title screen).
         virtual void OnGameStart() {}
+        // Broadcast once when the boss first aggros onto the player.
+        virtual void OnBossEngaged() {}
+        // Broadcast once when the boss drops below half health and enters phase two.
+        virtual void OnBossEnraged() {}
+        // Broadcast when the player lands the third hit of the melee combo.
+        virtual void OnPlayerComboStrike() {}
     };
     using CombatNotificationBus = AZ::EBus<CombatNotifications>;
 } // namespace YellowMythNailong

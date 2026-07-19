@@ -16,8 +16,13 @@
 #include <Atom/RPI.Public/RPISystemInterface.h>
 #include <Atom/RPI.Reflect/Model/ModelAsset.h>
 #include <Atom/RPI.Reflect/Asset/AssetUtils.h>
+#include <Atom/RPI.Reflect/Material/MaterialAsset.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
+#include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
 #include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentBus.h>
+#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentConstants.h>
+#include <AtomLyIntegration/CommonFeatures/Material/MaterialAssignment.h>
 #include <AzCore/Asset/AssetManagerBus.h>
 #include <AzCore/Component/TransformBus.h>
 
@@ -26,6 +31,9 @@
 #include "CombatManagerComponent.h"
 
 #include <imgui/imgui.h>
+#include <cmath>
+#include <AzCore/Math/MathUtils.h>
+#include <AzCore/Math/Quaternion.h>
 
 namespace YellowMythNailong
 {
@@ -85,6 +93,7 @@ namespace YellowMythNailong
         YellowMythNailongRequestBus::Handler::BusConnect();
         AzFramework::GameEntityContextEventBus::Handler::BusConnect();
         ImGui::ImGuiUpdateListenerBus::Handler::BusConnect();
+        CombatNotificationBus::Handler::BusConnect();
 
         AzFramework::EntityContextId contextId = AzFramework::EntityContextId::CreateNull();
         AzFramework::GameEntityContextRequestBus::BroadcastResult(contextId, &AzFramework::GameEntityContextRequests::GetGameEntityContextId);
@@ -97,6 +106,7 @@ namespace YellowMythNailong
     void YellowMythNailongSystemComponent::Deactivate()
     {
         ImGui::ImGuiUpdateListenerBus::Handler::BusDisconnect();
+        CombatNotificationBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
         AzFramework::GameEntityContextEventBus::Handler::BusDisconnect();
@@ -125,7 +135,7 @@ namespace YellowMythNailong
         AZ::TickBus::Handler::BusConnect();
     }
 
-    void YellowMythNailongSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    void YellowMythNailongSystemComponent::OnTick(float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         if (!m_runtimeCameraId.IsValid() && CanCreateRuntimeCamera())
         {
@@ -137,31 +147,143 @@ namespace YellowMythNailong
             m_nailongModelSet = SetupNailongModel();
         }
 
-        if (m_runtimeCameraId.IsValid() && m_nailongModelSet)
+        if (!m_materialsApplied)
         {
-            AZ::TickBus::Handler::BusDisconnect();
+            m_materialsApplied = ApplyArenaMaterials();
+        }
+
+        // Age and retire floating combat text.
+        for (auto it = m_floatingTexts.begin(); it != m_floatingTexts.end();)
+        {
+            it->m_age += deltaTime;
+            if (it->m_age >= it->m_lifetime)
+            {
+                it = m_floatingTexts.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        if (m_hurtFlash > 0.0f)
+        {
+            m_hurtFlash = AZ::GetMax(0.0f, m_hurtFlash - deltaTime * 2.5f);
+        }
+        if (m_bannerTimer > 0.0f)
+        {
+            m_bannerTimer -= deltaTime;
+        }
+        if (m_comboPopupTimer > 0.0f)
+        {
+            m_comboPopupTimer -= deltaTime;
         }
     }
 
-    namespace
+    void YellowMythNailongSystemComponent::SpawnFloatingText(
+        const AZ::Vector3& worldPos, const char* text, float r, float g, float b, float scale)
     {
-        void OverrideMaterialByProductPath(AZ::EntityId entityId, const char* productPath)
+        FloatingText ft;
+        ft.m_worldPos = worldPos;
+        ft.m_text = text;
+        ft.m_r = r;
+        ft.m_g = g;
+        ft.m_b = b;
+        ft.m_scale = scale;
+        m_floatingTexts.push_back(ft);
+    }
+
+    void YellowMythNailongSystemComponent::OnBossDamaged(float damage)
+    {
+        // Gold number over the boss; the combo finisher pops bigger.
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
         {
-            AZ::Data::AssetId materialAssetId;
-            AZ::Data::AssetCatalogRequestBus::BroadcastResult(
-                materialAssetId,
-                &AZ::Data::AssetCatalogRequestBus::Events::GetAssetIdByPath,
-                productPath,
-                azrtti_typeid<AZ::RPI::MaterialAsset>(),
-                false);
-            if (materialAssetId.IsValid())
-            {
-                AZ::Render::MaterialComponentRequestBus::Event(
-                    entityId,
-                    &AZ::Render::MaterialComponentRequestBus::Events::SetMaterialAssetIdOnDefaultSlot,
-                    materialAssetId);
-            }
+            return;
         }
+        appRequests->EnumerateEntities([this, damage](AZ::Entity* entity)
+        {
+            if (entity && entity->GetName() == "DarkBoss")
+            {
+                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                pos += AZ::Vector3(0.0f, 0.0f, 2.5f);
+                const bool finisher = damage >= 70.0f;
+                const AZStd::string text = AZStd::string::format("-%d", static_cast<int>(damage));
+                SpawnFloatingText(pos, text.c_str(), 1.0f, 0.85f, 0.2f, finisher ? 2.2f : 1.4f);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    void YellowMythNailongSystemComponent::OnPlayerDamaged(float damage)
+    {
+        m_hurtFlash = 1.0f;
+
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return;
+        }
+        appRequests->EnumerateEntities([this, damage](AZ::Entity* entity)
+        {
+            if (entity && entity->GetName() == "NailongPlayer")
+            {
+                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                pos += AZ::Vector3(0.0f, 0.0f, 2.0f);
+                const AZStd::string text = AZStd::string::format("-%d", static_cast<int>(damage));
+                SpawnFloatingText(pos, text.c_str(), 1.0f, 0.25f, 0.2f, 1.3f);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    void YellowMythNailongSystemComponent::OnBossEngaged()
+    {
+        m_bannerKind = 1;
+        m_bannerTimer = 3.0f;
+    }
+
+    void YellowMythNailongSystemComponent::OnBossEnraged()
+    {
+        m_bannerKind = 2;
+        m_bannerTimer = 3.0f;
+    }
+
+    void YellowMythNailongSystemComponent::OnPlayerComboStrike()
+    {
+        m_comboPopupTimer = 0.9f;
+    }
+
+    bool YellowMythNailongSystemComponent::WorldToScreen(
+        const AZ::Vector3& worldPos, float screenW, float screenH, float& outX, float& outY, float& outDepth) const
+    {
+        if (!m_runtimeCameraId.IsValid())
+        {
+            return false;
+        }
+
+        AZ::Transform camTM = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(camTM, m_runtimeCameraId, &AZ::TransformInterface::GetWorldTM);
+        const AZ::Vector3 v = camTM.GetInverse().TransformPoint(worldPos);
+
+        // The camera looks down its local +Y axis; screen-right is +X, up is +Z.
+        const float depth = v.GetY();
+        if (depth < 0.2f)
+        {
+            return false;
+        }
+        const float f = 1.0f / tanf(AZ::DegToRad(60.0f) * 0.5f);
+        const float aspect = screenW / screenH;
+        const float ndcX = (v.GetX() * f / aspect) / depth;
+        const float ndcY = (v.GetZ() * f) / depth;
+        outX = (ndcX * 0.5f + 0.5f) * screenW;
+        outY = (0.5f - ndcY * 0.5f) * screenH;
+        outDepth = depth;
+        return true;
     }
 
     bool YellowMythNailongSystemComponent::SetupNailongModel()
@@ -189,16 +311,86 @@ namespace YellowMythNailong
                 AZ::Render::MeshComponentRequestBus::Event(
                     entity->GetId(), &AZ::Render::MeshComponentRequestBus::Events::SetModelAsset, nailongAsset);
 
-                // The GLB Nailong's materials got merged into a single red one by the
-                // importer; force the whole model to the yellow Nailong body color.
-                OverrideMaterialByProductPath(
-                    entity->GetId(), "assets/materials/yellownailong.azmaterial");
+                // Coloring is handled by ApplyArenaMaterials via property overrides.
                 done = true;
                 return false;
             }
             return true;
         });
         return done;
+    }
+
+    bool YellowMythNailongSystemComponent::ApplyArenaMaterials()
+    {
+        // Style the arena through material property overrides on each entity's
+        // existing default material slot — no .azmaterial assets or material
+        // builder jobs required.
+        auto groundTexture = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::StreamingImageAsset>(
+            "assets/textures/ground.png.streamingimage");
+        if (!groundTexture.IsReady())
+        {
+            return false; // texture still processing; retry next tick
+        }
+        AZ::Data::Asset<AZ::RPI::ImageAsset> groundImage(groundTexture);
+
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return false;
+        }
+
+        const AZ::Render::MaterialAssignmentId slot = AZ::Render::DefaultMaterialAssignmentId;
+
+        appRequests->EnumerateEntities([&](AZ::Entity* entity)
+        {
+            if (!entity)
+            {
+                return true;
+            }
+            const AZStd::string& name = entity->GetName();
+            if (name == "NailongPlayer")
+            {
+                // Linear-space colors: warm saturated Nailong yellow.
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("baseColor.color"), AZStd::any(AZ::Color(0.95f, 0.48f, 0.02f, 1.0f)));
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("roughness.factor"), AZStd::any(0.75f));
+            }
+            else if (name == "DarkBoss")
+            {
+                // Near-black with a violet tinge.
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("baseColor.color"), AZStd::any(AZ::Color(0.02f, 0.012f, 0.035f, 1.0f)));
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("roughness.factor"), AZStd::any(0.6f));
+            }
+            else if (name == "Ground")
+            {
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("baseColor.color"), AZStd::any(AZ::Color(0.42f, 0.30f, 0.17f, 1.0f)));
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("roughness.factor"), AZStd::any(0.95f));
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("baseColor.textureMap"), AZStd::any(groundImage));
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("uv.tileU"), AZStd::any(40.0f));
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
+                    AZStd::string("uv.tileV"), AZStd::any(40.0f));
+            }
+            return true;
+        });
+
+        AZLOG_INFO("NailongSystem: applied arena material overrides");
+        return true;
     }
 
     bool YellowMythNailongSystemComponent::CanCreateRuntimeCamera() const
@@ -468,6 +660,180 @@ namespace YellowMythNailong
             }
             ImGui::SetWindowFontScale(1.0f);
             ImGui::End();
+        }
+
+        // Combo finisher popup.
+        if (m_comboPopupTimer > 0.0f)
+        {
+            const float a = AZ::GetClamp(m_comboPopupTimer / 0.9f, 0.0f, 1.0f);
+            ImGui::SetNextWindowPos(ImVec2(sw * 0.5f - 260.0f, sh * 0.62f));
+            ImGui::SetNextWindowSize(ImVec2(520.0f, 0.0f));
+            ImGui::Begin("ComboPopup", nullptr, hudFlags);
+            ImGui::SetWindowFontScale(1.6f + 0.4f * (m_comboPopupTimer / 0.9f));
+            const char* popup = "NAILONG SMASH!";
+            const float tw = ImGui::CalcTextSize(popup).x;
+            ImGui::SetCursorPosX((520.0f - tw) * 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.15f, a));
+            ImGui::TextUnformatted(popup);
+            ImGui::PopStyleColor();
+            ImGui::SetWindowFontScale(1.0f);
+            ImGui::End();
+        }
+
+        DrawBossBanner(sw, sh);
+        DrawTelegraphRing(sw, sh);
+        DrawFloatingTexts(sw, sh);
+        DrawVignette(sw, sh);
+    }
+
+    void YellowMythNailongSystemComponent::DrawFloatingTexts(float sw, float sh)
+    {
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        for (const FloatingText& ft : m_floatingTexts)
+        {
+            // Rise and fade over the lifetime.
+            AZ::Vector3 pos = ft.m_worldPos + AZ::Vector3(0.0f, 0.0f, 1.6f * ft.m_age);
+            float sx = 0.0f, sy = 0.0f, depth = 0.0f;
+            if (!WorldToScreen(pos, sw, sh, sx, sy, depth))
+            {
+                continue;
+            }
+            const float alpha = AZ::GetClamp(1.0f - ft.m_age / ft.m_lifetime, 0.0f, 1.0f);
+            const ImU32 outline = IM_COL32(0, 0, 0, static_cast<int>(200 * alpha));
+            const ImU32 color = IM_COL32(
+                static_cast<int>(ft.m_r * 255), static_cast<int>(ft.m_g * 255), static_cast<int>(ft.m_b * 255),
+                static_cast<int>(255 * alpha));
+            ImFont* font = ImGui::GetFont();
+            const float fontSize = ImGui::GetFontSize() * ft.m_scale;
+            const ImVec2 textSize = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, ft.m_text.c_str());
+            const ImVec2 center(sx - textSize.x * 0.5f, sy - textSize.y * 0.5f);
+            for (const ImVec2& o : { ImVec2(-1.5f, 0.0f), ImVec2(1.5f, 0.0f), ImVec2(0.0f, -1.5f), ImVec2(0.0f, 1.5f) })
+            {
+                drawList->AddText(font, fontSize, ImVec2(center.x + o.x, center.y + o.y), outline, ft.m_text.c_str());
+            }
+            drawList->AddText(font, fontSize, center, color, ft.m_text.c_str());
+        }
+    }
+
+    void YellowMythNailongSystemComponent::DrawBossBanner(float sw, float sh)
+    {
+        if (m_bannerTimer <= 0.0f || m_bannerKind == 0)
+        {
+            return;
+        }
+
+        const float alpha = AZ::GetClamp(m_bannerTimer, 0.0f, 1.0f);
+        const bool enrage = (m_bannerKind == 2);
+        const char* title = enrage ? "THE DARK DRAGON IS ENRAGED" : "DARK DRAGON";
+        const char* sub = enrage ? "Its fury doubles. Watch for the charge." : "Devourer of the Light";
+        const ImVec4 color = enrage ? ImVec4(1.0f, 0.2f, 0.1f, alpha) : ImVec4(0.85f, 0.2f, 0.9f, alpha);
+
+        const ImGuiWindowFlags flags =
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs |
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize;
+
+        ImGui::SetNextWindowPos(ImVec2(sw * 0.5f - 400.0f, sh * 0.20f));
+        ImGui::SetNextWindowSize(ImVec2(800.0f, 0.0f));
+        ImGui::Begin("BossBanner", nullptr, flags);
+
+        ImGui::SetWindowFontScale(2.6f);
+        {
+            const float tw = ImGui::CalcTextSize(title).x;
+            ImGui::SetCursorPosX((800.0f - tw) * 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::TextUnformatted(title);
+            ImGui::PopStyleColor();
+        }
+        ImGui::SetWindowFontScale(1.2f);
+        {
+            const float tw = ImGui::CalcTextSize(sub).x;
+            ImGui::SetCursorPosX((800.0f - tw) * 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, alpha * 0.9f));
+            ImGui::TextUnformatted(sub);
+            ImGui::PopStyleColor();
+        }
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::End();
+    }
+
+    void YellowMythNailongSystemComponent::DrawTelegraphRing(float sw, float sh)
+    {
+        // While the boss telegraphs its charge, paint the danger zone on the ground.
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return;
+        }
+
+        AZ::Vector3 target;
+        float radius = 0.0f;
+        bool telegraphing = false;
+        appRequests->EnumerateEntities([&](AZ::Entity* entity)
+        {
+            if (entity && entity->GetName() == "DarkBoss")
+            {
+                if (auto* boss = entity->FindComponent<BossAIComponent>())
+                {
+                    telegraphing = boss->IsTelegraphing();
+                    target = boss->GetTelegraphTarget();
+                    radius = boss->GetTelegraphRadius();
+                }
+                return false;
+            }
+            return true;
+        });
+        if (!telegraphing)
+        {
+            return;
+        }
+
+        // Draw the danger zone as a perspective-correct ring on the ground:
+        // sample world-space points around the circle and project each one.
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        AZStd::vector<ImVec2> points;
+        for (int i = 0; i < 40; ++i)
+        {
+            const float angle = AZ::Constants::TwoPi * static_cast<float>(i) / 40.0f;
+            const AZ::Vector3 p = target + AZ::Vector3(cosf(angle) * radius, sinf(angle) * radius, 0.15f);
+            float px = 0.0f, py = 0.0f, pd = 0.0f;
+            if (WorldToScreen(p, sw, sh, px, py, pd))
+            {
+                points.push_back(ImVec2(px, py));
+            }
+        }
+        if (points.size() < 3)
+        {
+            return;
+        }
+        drawList->AddConvexPolyFilled(points.data(), static_cast<int>(points.size()), IM_COL32(255, 30, 20, 55));
+        drawList->AddPolyline(points.data(), static_cast<int>(points.size()), IM_COL32(255, 70, 50, 230), true, 3.0f);
+    }
+
+    void YellowMythNailongSystemComponent::DrawVignette(float sw, float sh)
+    {
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+        // Permanent soft vignette for a cinematic frame.
+        const int baseAlpha = 42;
+        const float edge = sh * 0.18f;
+        const ImU32 dark = IM_COL32(0, 0, 0, baseAlpha);
+        const ImU32 clear = IM_COL32(0, 0, 0, 0);
+        drawList->AddRectFilledMultiColor(ImVec2(0.0f, 0.0f), ImVec2(sw, edge), dark, dark, clear, clear);
+        drawList->AddRectFilledMultiColor(ImVec2(0.0f, sh - edge), ImVec2(sw, sh), clear, clear, dark, dark);
+        drawList->AddRectFilledMultiColor(ImVec2(0.0f, 0.0f), ImVec2(edge, sh), dark, clear, clear, dark);
+        drawList->AddRectFilledMultiColor(ImVec2(sw - edge, 0.0f), ImVec2(sw, sh), clear, dark, dark, clear);
+
+        // Red hurt flash on top when the player takes a hit.
+        if (m_hurtFlash > 0.0f)
+        {
+            const int a = static_cast<int>(150.0f * m_hurtFlash);
+            const ImU32 red = IM_COL32(200, 10, 10, a);
+            const ImU32 redClear = IM_COL32(200, 10, 10, 0);
+            drawList->AddRectFilledMultiColor(ImVec2(0.0f, 0.0f), ImVec2(sw, edge * 1.4f), red, red, redClear, redClear);
+            drawList->AddRectFilledMultiColor(ImVec2(0.0f, sh - edge * 1.4f), ImVec2(sw, sh), redClear, redClear, red, red);
+            drawList->AddRectFilledMultiColor(ImVec2(0.0f, 0.0f), ImVec2(edge * 1.4f, sh), red, redClear, redClear, red);
+            drawList->AddRectFilledMultiColor(ImVec2(sw - edge * 1.4f, 0.0f), ImVec2(sw, sh), redClear, red, red, redClear);
         }
     }
 

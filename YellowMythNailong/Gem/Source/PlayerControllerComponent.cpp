@@ -72,7 +72,7 @@ namespace YellowMythNailong
 
         // TransformComponent ignores the prefab "Scale" field at runtime; set the
         // Nailong character to a playable size (the chubby model is ~1.7 m tall at 1.0).
-        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, 1.2f);
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale);
 
         m_health = m_maxHealth;
         m_keyW = m_keyA = m_keyS = m_keyD = m_keySpace = false;
@@ -148,14 +148,45 @@ namespace YellowMythNailong
 
     void PlayerControllerComponent::OnTick(float deltaTime, AZ::ScriptTimePoint /*time*/)
     {
+        m_animTime += deltaTime;
+
+        // Death animation: the chubby hero deflates into the ground, then holds.
         if (m_health <= 0.0f)
         {
+            if (m_deathTimer > 0.0f)
+            {
+                m_deathTimer -= deltaTime;
+                const float t = AZ::GetClamp(1.0f - m_deathTimer / 1.2f, 0.0f, 1.0f);
+                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+                pos.SetZ(-1.4f * t);
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, pos);
+                AZ::TransformBus::Event(
+                    GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale * (1.0f - 0.4f * t));
+            }
+            UpdateCamera();
             return;
         }
 
         if (m_attackTimer > 0.0f)
         {
             m_attackTimer -= deltaTime;
+        }
+        if (m_comboTimer > 0.0f)
+        {
+            m_comboTimer -= deltaTime;
+            if (m_comboTimer <= 0.0f)
+            {
+                m_comboCount = 0;
+            }
+        }
+
+        // Hitstop: freeze the world for a few frames when a hit connects.
+        if (m_hitstopTimer > 0.0f)
+        {
+            m_hitstopTimer -= deltaTime;
+            UpdateCamera();
+            return;
         }
 
         UpdateMovementFromKeyboard();
@@ -171,6 +202,11 @@ namespace YellowMythNailong
             {
                 Move(m_dodgeDirection, deltaTime);
             }
+        }
+        else if (m_lungeTimer > 0.0f)
+        {
+            m_lungeTimer -= deltaTime;
+            Move(m_lungeDirection * (m_lungeSpeed / m_moveSpeed), deltaTime);
         }
         else
         {
@@ -190,6 +226,7 @@ namespace YellowMythNailong
         m_attackRequested = false;
         m_inputDirection = AZ::Vector3::CreateZero();
 
+        UpdateVisuals(deltaTime);
         TryFindCameraEntity();
         UpdateCamera();
     }
@@ -222,6 +259,8 @@ namespace YellowMythNailong
             return; // invulnerable while dodging
         }
         m_health -= damage;
+        m_shakeAmplitude = AZ::GetMin(m_shakeAmplitude + 0.35f, 0.7f);
+        m_flinchTimer = 0.12f;
         AZLOG_INFO("Player health: %.1f", m_health);
         if (m_health <= 0.0f)
         {
@@ -229,9 +268,17 @@ namespace YellowMythNailong
         }
     }
 
+    void PlayerControllerComponent::OnBossDamaged(float /*damage*/)
+    {
+        // The player's own hit connected: freeze frame + a touch of shake.
+        m_hitstopTimer = 0.06f;
+        m_shakeAmplitude = AZ::GetMin(m_shakeAmplitude + 0.12f, 0.4f);
+    }
+
     void PlayerControllerComponent::OnPlayerDied()
     {
         AZLOG_INFO("Player died!");
+        m_deathTimer = 1.2f;
     }
 
     void PlayerControllerComponent::OnRestartGame()
@@ -243,6 +290,15 @@ namespace YellowMythNailong
         m_attackTimer = 0.0f;
         m_attackRequested = false;
         m_keyW = m_keyA = m_keyS = m_keyD = m_keySpace = false;
+        m_hitstopTimer = 0.0f;
+        m_pulseTimer = 0.0f;
+        m_flinchTimer = 0.0f;
+        m_lungeTimer = 0.0f;
+        m_comboCount = 0;
+        m_comboTimer = 0.0f;
+        m_deathTimer = 0.0f;
+        m_shakeAmplitude = 0.0f;
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale);
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, AZ::Vector3::CreateZero());
     }
 
@@ -280,8 +336,58 @@ namespace YellowMythNailong
     {
         AZ::Vector3 pos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
-        AZLOG_INFO("Nailong attacks!");
-        CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerAttack, pos, m_attackRadius, m_attackDamage);
+
+        // 3-hit combo: the third strike hits much harder and lunges further.
+        const bool finisher = (m_comboCount == 2);
+        const float damage = finisher ? m_comboFinisherDamage : m_attackDamage;
+        AZLOG_INFO("Nailong attacks! (combo %d)", m_comboCount + 1);
+        CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerAttack, pos, m_attackRadius, damage);
+
+        if (finisher)
+        {
+            CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerComboStrike);
+        }
+        m_comboCount = (m_comboCount + 1) % 3;
+        m_comboTimer = 1.2f;
+
+        // Lunge toward the current facing for a meaty swing.
+        AZ::Quaternion rotation = AZ::Quaternion::CreateIdentity();
+        AZ::TransformBus::EventResult(rotation, GetEntityId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
+        m_lungeDirection = rotation.TransformVector(AZ::Vector3::CreateAxisY());
+        m_lungeDirection.SetZ(0.0f);
+        if (m_lungeDirection.GetLengthSq() < 0.001f)
+        {
+            m_lungeDirection = AZ::Vector3::CreateAxisY();
+        }
+        m_lungeDirection.Normalize();
+        m_lungeSpeed = finisher ? 14.0f : 7.0f;
+        m_lungeTimer = 0.12f;
+        m_pulseTimer = 0.15f;
+    }
+
+    void PlayerControllerComponent::UpdateVisuals(float deltaTime)
+    {
+        if (m_pulseTimer > 0.0f)
+        {
+            m_pulseTimer -= deltaTime;
+        }
+        if (m_flinchTimer > 0.0f)
+        {
+            m_flinchTimer -= deltaTime;
+        }
+
+        // Idle breathing + attack pulse + hurt flinch, all as one uniform scale.
+        float scale = m_baseScale;
+        scale *= 1.0f + 0.025f * sinf(m_animTime * 2.2f);
+        if (m_pulseTimer > 0.0f)
+        {
+            scale *= 1.0f + 0.18f * (m_pulseTimer / 0.15f);
+        }
+        if (m_flinchTimer > 0.0f)
+        {
+            scale *= 1.0f - 0.15f * (m_flinchTimer / 0.12f);
+        }
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, scale);
     }
 
     void PlayerControllerComponent::TryFindCameraEntity()
@@ -311,6 +417,16 @@ namespace YellowMythNailong
 
     void PlayerControllerComponent::UpdateCamera()
     {
+        // Camera shake decays even while the game is frozen by hitstop.
+        if (m_shakeAmplitude > 0.001f)
+        {
+            m_shakeAmplitude *= 0.90f;
+        }
+        else
+        {
+            m_shakeAmplitude = 0.0f;
+        }
+
         AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(playerPos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
 
@@ -319,8 +435,16 @@ namespace YellowMythNailong
 
         // Third-person offset: behind the player (-Y) and above (+Z).
         const AZ::Vector3 relativeOffset(0.0f, -m_cameraDistance, m_cameraHeight);
-        const AZ::Vector3 cameraPos = playerPos + playerRotation.TransformVector(relativeOffset);
+        AZ::Vector3 cameraPos = playerPos + playerRotation.TransformVector(relativeOffset);
         const AZ::Vector3 lookAtPos = playerPos + AZ::Vector3(0.0f, 0.0f, m_cameraLookAtHeight);
+
+        if (m_shakeAmplitude > 0.0f)
+        {
+            cameraPos += AZ::Vector3(
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * m_shakeAmplitude,
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * m_shakeAmplitude,
+                (m_rng.GetRandomFloat() * 2.0f - 1.0f) * m_shakeAmplitude * 0.6f);
+        }
 
         // The camera's view forward axis is +Y in O3DE; CreateLookAt's third
         // argument selects which local basis axis aims at the target.

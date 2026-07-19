@@ -43,7 +43,8 @@
         "WhiteBox",
         "RemoteTools",
         "Atom_Component_DebugCamera",
-        "Camera"
+        "Camera",
+        "Atom_AtomBridge"
     ],
     "engine_version": "2.6.0"
 }
