@@ -53,7 +53,7 @@ namespace YellowMythNailong
         float m_moveSpeed = 3.0f;
         float m_attackRange = 3.0f;
         float m_attackCooldown = 2.0f;
-        float m_attackDamage = 15.0f;
+        float m_attackDamage = 10.0f;
         float m_attackRadius = 3.5f;
         float m_maxHealth = 300.0f;
         float m_staggerDuration = 0.5f;

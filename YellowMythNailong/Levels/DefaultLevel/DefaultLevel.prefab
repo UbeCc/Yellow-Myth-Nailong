@@ -481,9 +481,9 @@
               0.0
             ],
             "Scale": [
-              0.005,
-              0.005,
-              0.005
+              1.2,
+              1.2,
+              1.2
             ]
           }
         },
@@ -494,10 +494,10 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{A14FDA6C-623B-577E-B63E-48E3D2784350}",
-                  "subId": 282601908
+                  "guid": "{F5638F4F-4F35-554D-9FD0-84845D9980C5}",
+                  "subId": 280778609
                 },
-                "assetHint": "quaternius/monsterpack/obj/dragon.obj.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/nailong.glb.azmodel"
               }
             }
           }
@@ -515,7 +515,21 @@
           "Id": 2000000000000000014,
           "Controller": {
             "Configuration": {
-              "materials": []
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
+                      },
+                      "assetHint": "assets/materials/yellownailong.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }

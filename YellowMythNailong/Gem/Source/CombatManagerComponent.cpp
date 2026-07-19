@@ -100,7 +100,10 @@ namespace YellowMythNailong
         AZ::Vector3 bossPos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(bossPos, m_bossEntityId, &AZ::TransformInterface::GetWorldTranslation);
 
-        float distSq = (bossPos - position).GetLengthSq();
+        // Melee check on the ground plane only: large bosses have a high
+        // origin, so full 3D distance would wrongly whiff point-blank hits.
+        const AZ::Vector3 delta = bossPos - position;
+        float distSq = delta.GetX() * delta.GetX() + delta.GetY() * delta.GetY();
         if (distSq <= radius * radius)
         {
             CombatNotificationBus::Broadcast(&CombatNotifications::OnBossDamaged, damage);
@@ -123,7 +126,9 @@ namespace YellowMythNailong
         AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(playerPos, m_playerEntityId, &AZ::TransformInterface::GetWorldTranslation);
 
-        float distSq = (playerPos - position).GetLengthSq();
+        // Same ground-plane check as OnPlayerAttack.
+        const AZ::Vector3 delta = playerPos - position;
+        float distSq = delta.GetX() * delta.GetX() + delta.GetY() * delta.GetY();
         if (distSq <= radius * radius)
         {
             CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerDamaged, damage);
