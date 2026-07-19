@@ -22,6 +22,20 @@ if [ -z "$SDL_AUDIODRIVER" ]; then
     export SDL_AUDIODRIVER=dummy 2>/dev/null || true
 fi
 
+# Background watcher: auto-dismiss the "Startup Errors" dialog (ALSA audio noise).
+(
+  for i in $(seq 1 40); do
+    sleep 1
+    if xdotool search --name "Startup Errors" >/dev/null 2>&1; then
+      xdotool search --name "Startup Errors" key --clearmodifiers Escape 2>/dev/null || true
+      sleep 1
+      xdotool search --name "Startup Errors" key --clearmodifiers Return 2>/dev/null || true
+      sleep 1
+      xdotool search --name "Startup Errors" windowclose 2>/dev/null || true
+    fi
+  done
+) &
+
 exec ./YellowMythNailong.GameLauncher \
     --project-path=/root/Yellow-Myth-Nailong/YellowMythNailong \
     --rhi=Vulkan \
