@@ -48,15 +48,17 @@ namespace YellowMythNailong
         void Move(const AZ::Vector3& direction, float deltaTime);
         void PerformDodge();
         void PerformAttack();
-        void UpdateCamera();
+        void UpdateCamera(float deltaTime);
         void TryFindCameraEntity();
+        void TryFindPartEntities();
         void UpdateVisuals(float deltaTime);
+        void UpdatePartAnimations(float deltaTime);
 
         void UpdateMovementFromKeyboard();
 
         float m_moveSpeed = 5.0f;
         float m_dodgeSpeed = 18.0f;
-        float m_dodgeDuration = 0.25f;
+        float m_dodgeDuration = 0.35f;
         float m_attackCooldown = 0.5f;
         float m_attackRadius = 6.5f;
         float m_attackDamage = 40.0f;
@@ -100,6 +102,17 @@ namespace YellowMythNailong
         int m_comboCount = 0;             // 3-hit chain: 40 / 40 / 70 damage
         float m_comboTimer = 0.0f;
         float m_deathTimer = 0.0f;        // sink into the ground after defeat
+
+        // Presentation extras.
+        AZ::EntityId m_visualPartId;      // NailongVisual child (roll / tilt target)
+        AZ::EntityId m_eyePartIds[4];     // EyeL / EyeR / PupilL / PupilR (blink target)
+        AZ::EntityId m_bossEntityId;      // for hit knockback direction
+        float m_blinkTimer = 2.5f;        // time until the next blink
+        float m_blinkActiveTimer = 0.0f;  // > 0 while the eyes are closed
+        float m_knockbackTimer = 0.0f;
+        AZ::Vector3 m_knockbackDirection = AZ::Vector3::CreateAxisY();
+        AZ::Vector3 m_cameraSmoothedPos = AZ::Vector3::CreateZero();
+        bool m_cameraSmoothedInit = false;
         AZ::SimpleLcgRandom m_rng;
     };
 } // namespace YellowMythNailong

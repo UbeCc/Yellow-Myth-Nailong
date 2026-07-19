@@ -149,6 +149,7 @@ namespace YellowMythNailong
     void PlayerControllerComponent::OnTick(float deltaTime, AZ::ScriptTimePoint /*time*/)
     {
         m_animTime += deltaTime;
+        TryFindPartEntities();
 
         // Death animation: the chubby hero deflates into the ground, then holds.
         if (m_health <= 0.0f)
@@ -164,7 +165,8 @@ namespace YellowMythNailong
                 AZ::TransformBus::Event(
                     GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale * (1.0f - 0.4f * t));
             }
-            UpdateCamera();
+            UpdatePartAnimations(deltaTime);
+            UpdateCamera(deltaTime);
             return;
         }
 
@@ -185,13 +187,19 @@ namespace YellowMythNailong
         if (m_hitstopTimer > 0.0f)
         {
             m_hitstopTimer -= deltaTime;
-            UpdateCamera();
+            UpdateCamera(deltaTime);
             return;
         }
 
         UpdateMovementFromKeyboard();
 
-        if (m_isDodging)
+        if (m_knockbackTimer > 0.0f)
+        {
+            // Getting smacked shoves the little hero backwards.
+            m_knockbackTimer -= deltaTime;
+            Move(m_knockbackDirection * (8.0f / m_moveSpeed), deltaTime);
+        }
+        else if (m_isDodging)
         {
             m_dodgeTimer -= deltaTime;
             if (m_dodgeTimer <= 0.0f)
@@ -220,15 +228,17 @@ namespace YellowMythNailong
             {
                 PerformAttack();
                 m_attackTimer = m_attackCooldown;
+                m_attackRequested = false;
             }
         }
 
-        m_attackRequested = false;
+        // Attacks requested mid-dodge/knockback stay buffered for the next free frame.
         m_inputDirection = AZ::Vector3::CreateZero();
 
         UpdateVisuals(deltaTime);
+        UpdatePartAnimations(deltaTime);
         TryFindCameraEntity();
-        UpdateCamera();
+        UpdateCamera(deltaTime);
     }
 
     void PlayerControllerComponent::UpdateMovementFromKeyboard()
@@ -261,6 +271,23 @@ namespace YellowMythNailong
         m_health -= damage;
         m_shakeAmplitude = AZ::GetMin(m_shakeAmplitude + 0.35f, 0.7f);
         m_flinchTimer = 0.12f;
+
+        // Knock back away from the boss.
+        if (m_bossEntityId.IsValid())
+        {
+            AZ::Vector3 bossPos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(bossPos, m_bossEntityId, &AZ::TransformInterface::GetWorldTranslation);
+            AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(playerPos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+            AZ::Vector3 away = playerPos - bossPos;
+            away.SetZ(0.0f);
+            if (away.GetLengthSq() > 0.001f)
+            {
+                m_knockbackDirection = away.GetNormalized();
+                m_knockbackTimer = 0.18f;
+            }
+        }
+
         AZLOG_INFO("Player health: %.1f", m_health);
         if (m_health <= 0.0f)
         {
@@ -298,6 +325,14 @@ namespace YellowMythNailong
         m_comboTimer = 0.0f;
         m_deathTimer = 0.0f;
         m_shakeAmplitude = 0.0f;
+        m_knockbackTimer = 0.0f;
+        m_blinkActiveTimer = 0.0f;
+        m_blinkTimer = 2.5f;
+        m_cameraSmoothedInit = false;
+        if (m_visualPartId.IsValid())
+        {
+            AZ::TransformBus::Event(m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion, AZ::Quaternion::CreateIdentity());
+        }
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale);
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, AZ::Vector3::CreateZero());
     }
@@ -390,6 +425,107 @@ namespace YellowMythNailong
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, scale);
     }
 
+    void PlayerControllerComponent::TryFindPartEntities()
+    {
+        if (m_visualPartId.IsValid() && m_eyePartIds[0].IsValid() && m_bossEntityId.IsValid())
+        {
+            return;
+        }
+
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return;
+        }
+
+        appRequests->EnumerateEntities([this](AZ::Entity* entity)
+        {
+            if (!entity)
+            {
+                return true;
+            }
+            const AZStd::string& name = entity->GetName();
+            if (name == "NailongVisual")
+            {
+                m_visualPartId = entity->GetId();
+            }
+            else if (name == "NailongEyeL")
+            {
+                m_eyePartIds[0] = entity->GetId();
+            }
+            else if (name == "NailongEyeR")
+            {
+                m_eyePartIds[1] = entity->GetId();
+            }
+            else if (name == "NailongPupilL")
+            {
+                m_eyePartIds[2] = entity->GetId();
+            }
+            else if (name == "NailongPupilR")
+            {
+                m_eyePartIds[3] = entity->GetId();
+            }
+            else if (name == "DarkBoss")
+            {
+                m_bossEntityId = entity->GetId();
+            }
+            return true;
+        });
+    }
+
+    void PlayerControllerComponent::UpdatePartAnimations(float deltaTime)
+    {
+        // Body roll while dodging, a forward lean while lunging at the foe.
+        float pitch = 0.0f;
+        if (m_isDodging)
+        {
+            const float progress = 1.0f - AZ::GetClamp(m_dodgeTimer / m_dodgeDuration, 0.0f, 1.0f);
+            pitch = AZ::Constants::TwoPi * progress;
+        }
+        else if (m_lungeTimer > 0.0f)
+        {
+            pitch = 0.30f * (m_lungeTimer / 0.12f);
+        }
+        if (m_visualPartId.IsValid())
+        {
+            AZ::TransformBus::Event(
+                m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion,
+                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisX(), pitch));
+        }
+
+        // Idle blinking keeps the little guy alive between swings.
+        if (m_blinkActiveTimer > 0.0f)
+        {
+            m_blinkActiveTimer -= deltaTime;
+            if (m_blinkActiveTimer <= 0.0f)
+            {
+                for (const AZ::EntityId& eyeId : m_eyePartIds)
+                {
+                    if (eyeId.IsValid())
+                    {
+                        AZ::TransformBus::Event(eyeId, &AZ::TransformInterface::SetLocalUniformScale, 1.0f);
+                    }
+                }
+            }
+        }
+        else
+        {
+            m_blinkTimer -= deltaTime;
+            if (m_blinkTimer <= 0.0f)
+            {
+                m_blinkActiveTimer = 0.12f;
+                m_blinkTimer = 2.5f + m_rng.GetRandomFloat() * 2.0f;
+                for (const AZ::EntityId& eyeId : m_eyePartIds)
+                {
+                    if (eyeId.IsValid())
+                    {
+                        AZ::TransformBus::Event(eyeId, &AZ::TransformInterface::SetLocalUniformScale, 0.12f);
+                    }
+                }
+            }
+        }
+    }
+
     void PlayerControllerComponent::TryFindCameraEntity()
     {
         if (m_cameraEntityId.IsValid())
@@ -415,7 +551,7 @@ namespace YellowMythNailong
         });
     }
 
-    void PlayerControllerComponent::UpdateCamera()
+    void PlayerControllerComponent::UpdateCamera(float deltaTime)
     {
         // Camera shake decays even while the game is frozen by hitstop.
         if (m_shakeAmplitude > 0.001f)
@@ -430,13 +566,24 @@ namespace YellowMythNailong
         AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
         AZ::TransformBus::EventResult(playerPos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
 
+        // Smooth-follow: the camera chases a damped copy of the player position
+        // so movement feels weighty instead of rigidly attached.
+        if (!m_cameraSmoothedInit)
+        {
+            m_cameraSmoothedPos = playerPos;
+            m_cameraSmoothedInit = true;
+        }
+        const float followRate = 10.0f;
+        const float blend = 1.0f - expf(-followRate * deltaTime);
+        m_cameraSmoothedPos += (playerPos - m_cameraSmoothedPos) * blend;
+
         AZ::Quaternion playerRotation = AZ::Quaternion::CreateIdentity();
         AZ::TransformBus::EventResult(playerRotation, GetEntityId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
 
         // Third-person offset: behind the player (-Y) and above (+Z).
         const AZ::Vector3 relativeOffset(0.0f, -m_cameraDistance, m_cameraHeight);
-        AZ::Vector3 cameraPos = playerPos + playerRotation.TransformVector(relativeOffset);
-        const AZ::Vector3 lookAtPos = playerPos + AZ::Vector3(0.0f, 0.0f, m_cameraLookAtHeight);
+        AZ::Vector3 cameraPos = m_cameraSmoothedPos + playerRotation.TransformVector(relativeOffset);
+        const AZ::Vector3 lookAtPos = m_cameraSmoothedPos + AZ::Vector3(0.0f, 0.0f, m_cameraLookAtHeight);
 
         if (m_shakeAmplitude > 0.0f)
         {

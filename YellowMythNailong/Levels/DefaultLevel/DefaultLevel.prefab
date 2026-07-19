@@ -487,50 +487,12 @@
             ]
           }
         },
-        "Component_[2000000000000000002]": {
-          "$type": "AZ::Render::MeshComponent",
-          "Id": 2000000000000000002,
-          "Controller": {
-            "Configuration": {
-              "ModelAsset": {
-                "assetId": {
-                  "guid": "{F5638F4F-4F35-554D-9FD0-84845D9980C5}",
-                  "subId": 280778609
-                },
-                "assetHint": "quaternius/monsterpack/obj/nailong.glb.azmodel"
-              }
-            }
-          }
-        },
         "Component_[2000000000000000004]": {
           "$type": "GenericComponentWrapper",
           "Id": 2000000000000000004,
           "m_template": {
             "$type": "PlayerControllerComponent",
             "CameraEntityId": ""
-          }
-        },
-        "Component_[2000000000000000014]": {
-          "$type": "EditorMaterialComponent",
-          "Id": 2000000000000000014,
-          "Controller": {
-            "Configuration": {
-              "materials": [
-                {
-                  "Key": {
-                    "materialSlotStableId": 4294967295
-                  },
-                  "Value": {
-                    "MaterialAsset": {
-                      "assetId": {
-                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
-                      },
-                      "assetHint": "assets/materials/yellownailong.azmaterial"
-                    }
-                  }
-                }
-              ]
-            }
           }
         }
       }
@@ -722,6 +684,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000003]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000003,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -760,6 +745,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000013]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000013,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -791,11 +799,34 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
-                  "subId": 272434660
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
                 },
-                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000023]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000023,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -836,6 +867,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000033]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000033,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -874,6 +928,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000043]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000043,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -905,11 +982,34 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
-                  "subId": 272434660
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
                 },
-                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000053]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000053,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -950,6 +1050,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000063]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000063,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -988,6 +1111,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000073]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000073,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1019,11 +1165,34 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
-                  "subId": 272434660
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
                 },
-                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000083]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000083,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -1064,6 +1233,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000093]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000093,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1102,6 +1294,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000103]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000103,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1133,11 +1348,34 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
-                  "subId": 272434660
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
                 },
-                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000113]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000113,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -1178,6 +1416,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000123]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000123,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1216,6 +1477,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000133]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000133,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1247,11 +1531,34 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
-                  "subId": 272434660
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
                 },
-                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000143]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000143,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -1292,6 +1599,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000153]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000153,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1330,6 +1660,29 @@
               }
             }
           }
+        },
+        "Component_[300000000000163]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000163,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -1361,11 +1714,34 @@
             "Configuration": {
               "ModelAsset": {
                 "assetId": {
-                  "guid": "{2CF2337F-8843-58A6-8AA5-00239B23915D}",
-                  "subId": 272434660
+                  "guid": "{E5E6A87A-F3E0-58BC-8659-847919AB4B9D}",
+                  "subId": 272250226
                 },
-                "assetHint": "quaternius/monsterpack/obj/rock3.glb.azmodel"
+                "assetHint": "quaternius/monsterpack/obj/rock2.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000173]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000173,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -1404,6 +1780,439 @@
                 },
                 "assetHint": "quaternius/monsterpack/obj/rock1.glb.azmodel"
               }
+            }
+          }
+        },
+        "Component_[300000000000183]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 300000000000183,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{3B789014-A40A-5D57-8FE6-C4D096D734AE}"
+                      },
+                      "assetHint": "assets/materials/darkboss.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000001": {
+      "Id": "Entity_40000000000001",
+      "Name": "NailongVisual",
+      "Components": {
+        "Component_[400000000000011]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000011,
+          "Parent Entity": "Entity_20000000000000",
+          "Transform Data": {
+            "Translate": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    "Entity_40000000000002": {
+      "Id": "Entity_40000000000002",
+      "Name": "NailongBody",
+      "Components": {
+        "Component_[400000000000021]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000021,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "Component_[400000000000022]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000022,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{DF867FC0-5CCA-5786-87FE-42F2CEB2B939}",
+                  "subId": 276483138
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongbody.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000024]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000024,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
+                      },
+                      "assetHint": "assets/materials/yellownailong.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000003": {
+      "Id": "Entity_40000000000003",
+      "Name": "NailongBelly",
+      "Components": {
+        "Component_[400000000000031]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000031,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              0.0,
+              0.44,
+              0.32
+            ]
+          }
+        },
+        "Component_[400000000000032]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000032,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{344D3D21-6B76-51D0-BF4E-C586F9F8AA37}",
+                  "subId": 279718829
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongbelly.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000034]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000034,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{41131C1D-E156-572E-A77C-4A812DC2BFA0}"
+                      },
+                      "assetHint": "assets/materials/yellownailong_belly.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000004": {
+      "Id": "Entity_40000000000004",
+      "Name": "NailongEyeL",
+      "Components": {
+        "Component_[400000000000041]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000041,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              -0.17,
+              0.52,
+              0.82
+            ]
+          }
+        },
+        "Component_[400000000000042]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000042,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{F7A762CB-ED21-5AC1-AFBF-92C181BF3FB9}",
+                  "subId": 275165673
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongeye.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000044]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000044,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{41131C1D-E156-572E-A77C-4A812DC2BFA0}"
+                      },
+                      "assetHint": "assets/materials/yellownailong_belly.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000005": {
+      "Id": "Entity_40000000000005",
+      "Name": "NailongEyeR",
+      "Components": {
+        "Component_[400000000000051]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000051,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              0.17,
+              0.52,
+              0.82
+            ]
+          }
+        },
+        "Component_[400000000000052]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000052,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{F7A762CB-ED21-5AC1-AFBF-92C181BF3FB9}",
+                  "subId": 275165673
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongeye.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000054]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000054,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{41131C1D-E156-572E-A77C-4A812DC2BFA0}"
+                      },
+                      "assetHint": "assets/materials/yellownailong_belly.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000006": {
+      "Id": "Entity_40000000000006",
+      "Name": "NailongPupilL",
+      "Components": {
+        "Component_[400000000000061]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000061,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              -0.17,
+              0.6,
+              0.82
+            ]
+          }
+        },
+        "Component_[400000000000062]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000062,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{76D04704-5973-5833-9A40-F4BBB5D4BDE6}",
+                  "subId": 268694122
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongpupil.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000064]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000064,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{20882CD9-A36A-5E76-A477-0B74A8C1CA06}"
+                      },
+                      "assetHint": "assets/materials/yellownailong_dark.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000007": {
+      "Id": "Entity_40000000000007",
+      "Name": "NailongPupilR",
+      "Components": {
+        "Component_[400000000000071]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000071,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              0.17,
+              0.6,
+              0.82
+            ]
+          }
+        },
+        "Component_[400000000000072]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000072,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{76D04704-5973-5833-9A40-F4BBB5D4BDE6}",
+                  "subId": 268694122
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongpupil.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000074]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000074,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{20882CD9-A36A-5E76-A477-0B74A8C1CA06}"
+                      },
+                      "assetHint": "assets/materials/yellownailong_dark.azmaterial"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Entity_40000000000008": {
+      "Id": "Entity_40000000000008",
+      "Name": "NailongMouth",
+      "Components": {
+        "Component_[400000000000081]": {
+          "$type": "{27F1E1A1-8D9D-4C3B-BD3A-AFB9762449C0} TransformComponent",
+          "Id": 400000000000081,
+          "Parent Entity": "Entity_40000000000001",
+          "Transform Data": {
+            "Translate": [
+              0.0,
+              0.56,
+              0.7
+            ]
+          }
+        },
+        "Component_[400000000000082]": {
+          "$type": "AZ::Render::MeshComponent",
+          "Id": 400000000000082,
+          "Controller": {
+            "Configuration": {
+              "ModelAsset": {
+                "assetId": {
+                  "guid": "{47F38C63-1F26-5EB3-9B7A-5629257D7F15}",
+                  "subId": 270367820
+                },
+                "assetHint": "quaternius/monsterpack/obj/nailongmouth.glb.azmodel"
+              }
+            }
+          }
+        },
+        "Component_[400000000000084]": {
+          "$type": "EditorMaterialComponent",
+          "Id": 400000000000084,
+          "Controller": {
+            "Configuration": {
+              "materials": [
+                {
+                  "Key": {
+                    "materialSlotStableId": 4294967295
+                  },
+                  "Value": {
+                    "MaterialAsset": {
+                      "assetId": {
+                        "guid": "{20882CD9-A36A-5E76-A477-0B74A8C1CA06}"
+                      },
+                      "assetHint": "assets/materials/yellownailong_dark.azmaterial"
+                    }
+                  }
+                }
+              ]
             }
           }
         }

@@ -289,7 +289,7 @@ namespace YellowMythNailong
     bool YellowMythNailongSystemComponent::SetupNailongModel()
     {
         auto nailongAsset = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::ModelAsset>(
-            "quaternius/monsterpack/obj/nailong.glb.azmodel");
+            "quaternius/monsterpack/obj/nailongbody.glb.azmodel");
         if (!nailongAsset.IsReady())
         {
             return false;
@@ -306,7 +306,7 @@ namespace YellowMythNailong
         bool done = false;
         appRequests->EnumerateEntities([&done, &nailongAsset](AZ::Entity* entity)
         {
-            if (entity && entity->GetName() == "NailongPlayer")
+            if (entity && entity->GetName() == "NailongBody")
             {
                 AZ::Render::MeshComponentRequestBus::Event(
                     entity->GetId(), &AZ::Render::MeshComponentRequestBus::Events::SetModelAsset, nailongAsset);
@@ -322,9 +322,9 @@ namespace YellowMythNailong
 
     bool YellowMythNailongSystemComponent::ApplyArenaMaterials()
     {
-        // Style the arena through material property overrides on each entity's
-        // existing default material slot — no .azmaterial assets or material
-        // builder jobs required.
+        // Character parts get their colors from the cooked material assets (the only
+        // override path the renderer honors for these meshes); the ground gets a
+        // procedural texture through a property override instead.
         auto groundTexture = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::StreamingImageAsset>(
             "assets/textures/ground.png.streamingimage");
         if (!groundTexture.IsReady())
@@ -348,17 +348,7 @@ namespace YellowMythNailong
                 return true;
             }
             const AZStd::string& name = entity->GetName();
-            if (name == "NailongPlayer")
-            {
-                // Linear-space colors: warm saturated Nailong yellow.
-                AZ::Render::MaterialComponentRequestBus::Event(
-                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
-                    AZStd::string("baseColor.color"), AZStd::any(AZ::Color(0.95f, 0.48f, 0.02f, 1.0f)));
-                AZ::Render::MaterialComponentRequestBus::Event(
-                    entity->GetId(), &AZ::Render::MaterialComponentRequestBus::Events::SetPropertyValue, slot,
-                    AZStd::string("roughness.factor"), AZStd::any(0.75f));
-            }
-            else if (name == "DarkBoss")
+            if (name == "DarkBoss")
             {
                 // Near-black with a violet tinge.
                 AZ::Render::MaterialComponentRequestBus::Event(
