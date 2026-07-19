@@ -374,7 +374,8 @@ namespace YellowMythNailong
         AZLOG_INFO("Boss health: %.1f", m_health);
         m_pulseTimer = 0.15f;
         m_state = State::Stagger;
-        m_staggerTimer = m_staggerDuration;
+        // Heavy focus blows floor the boss; pokes only make it flinch.
+        m_staggerTimer = damage >= 100.0f ? 1.5f : m_staggerDuration;
 
         if (!m_enraged && m_health <= m_maxHealth * 0.5f && m_health > 0.0f)
         {

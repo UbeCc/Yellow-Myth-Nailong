@@ -29,6 +29,8 @@ namespace YellowMythNailong
         float GetMaxHealth() const { return m_maxHealth; }
         float GetSpitCooldownRemaining() const { return m_spitCooldown; }
         float GetSpitCooldownMax() const { return m_spitCooldownMax; }
+        int GetFocus() const { return m_focus; }
+        int GetMaxFocus() const { return m_maxFocus; }
 
     protected:
         void Init() override;
@@ -51,6 +53,7 @@ namespace YellowMythNailong
         void Move(const AZ::Vector3& direction, float deltaTime);
         void PerformDodge();
         void PerformAttack();
+        void PerformHeavyAttack();
         void FireSpit();
         void UpdateSpit(float deltaTime);
         void ResolveRockCollision();
@@ -109,6 +112,12 @@ namespace YellowMythNailong
         int m_comboCount = 0;             // 3-hit chain: 40 / 40 / 70 damage
         float m_comboTimer = 0.0f;
         float m_deathTimer = 0.0f;        // sink into the ground after defeat
+
+        // Focus economy: landed light hits build points, the F heavy spends them all.
+        int m_focus = 0;
+        int m_maxFocus = 3;
+        float m_heavyDamageBase = 70.0f;
+        float m_heavyDamagePerFocus = 40.0f;
 
         // Presentation extras.
         AZ::EntityId m_visualPartId;      // NailongVisual child (roll / tilt target)

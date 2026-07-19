@@ -731,6 +731,7 @@ namespace YellowMythNailong
         float playerHp = -1.0f, playerMax = 1.0f;
         float bossHp = -1.0f, bossMax = 1.0f;
         float spitCooldown = 0.0f, spitCooldownMax = 1.0f;
+        int focus = 0, maxFocus = 3;
         bool bossFound = false, gameOver = false, victory = false, gameStarted = true;
 
         if (auto* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get())
@@ -750,6 +751,8 @@ namespace YellowMythNailong
                         playerMax = pc->GetMaxHealth();
                         spitCooldown = pc->GetSpitCooldownRemaining();
                         spitCooldownMax = pc->GetSpitCooldownMax();
+                        focus = pc->GetFocus();
+                        maxFocus = pc->GetMaxFocus();
                     }
                     AZ::TransformBus::EventResult(m_mapPlayerPos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
                     AZ::Quaternion playerRot = AZ::Quaternion::CreateIdentity();
@@ -818,6 +821,26 @@ namespace YellowMythNailong
             ImGui::ProgressBar(fraction(playerHp, playerMax), ImVec2(300.0f, 18.0f));
             ImGui::PopStyleColor();
             ImGui::End();
+
+            // Focus pips under the HP bar.
+            ImDrawList* drawList = ImGui::GetForegroundDrawList();
+            for (int i = 0; i < maxFocus; ++i)
+            {
+                const float dx = 30.0f + i * 26.0f;
+                const float dy = 62.0f;
+                const ImU32 col = (i < focus) ? IM_COL32(255, 210, 60, 255) : IM_COL32(90, 90, 90, 140);
+                drawList->AddQuadFilled(
+                    ImVec2(dx, dy - 8.0f), ImVec2(dx + 8.0f, dy), ImVec2(dx, dy + 8.0f), ImVec2(dx - 8.0f, dy), col);
+            }
+            if (focus > 0)
+            {
+                ImGui::SetNextWindowPos(ImVec2(30.0f + maxFocus * 26.0f + 6.0f, 54.0f));
+                ImGui::Begin("FocusHint", nullptr, hudFlags);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
+                ImGui::TextUnformatted("[F] HEAVY");
+                ImGui::PopStyleColor();
+                ImGui::End();
+            }
         }
 
         // Boss HP (top-right), only once engaged.
@@ -844,7 +867,7 @@ namespace YellowMythNailong
 
         // Controls hint (bottom-center).
         {
-            const char* hint = "WASD Move    Space Dodge    Enter / LMB Attack    Q Milk Spit";
+            const char* hint = "WASD Move    Space Dodge    Enter / LMB Attack    Q Milk Spit    F Heavy";
             const float tw = ImGui::CalcTextSize(hint).x;
             ImGui::SetNextWindowPos(ImVec2((sw - tw) * 0.5f, sh - 36.0f));
             ImGui::Begin("Hint", nullptr, hudFlags);

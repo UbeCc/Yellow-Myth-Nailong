@@ -146,6 +146,13 @@ namespace YellowMythNailong
                 FireSpit();
             }
         }
+        else if (channelName == "keyboard_key_alphanumeric_F")
+        {
+            if (pressed)
+            {
+                PerformHeavyAttack();
+            }
+        }
         else
         {
             return false;
@@ -310,11 +317,17 @@ namespace YellowMythNailong
         }
     }
 
-    void PlayerControllerComponent::OnBossDamaged(float /*damage*/)
+    void PlayerControllerComponent::OnBossDamaged(float damage)
     {
         // The player's own hit connected: freeze frame + a touch of shake.
         m_hitstopTimer = 0.06f;
         m_shakeAmplitude = AZ::GetMin(m_shakeAmplitude + 0.12f, 0.4f);
+
+        // Landed light hits build focus; skills and heavies do not.
+        if (damage == m_attackDamage)
+        {
+            m_focus = AZ::GetMin(m_focus + 1, m_maxFocus);
+        }
     }
 
     void PlayerControllerComponent::OnPlayerDied()
@@ -347,6 +360,7 @@ namespace YellowMythNailong
         m_cameraSmoothedInit = false;
         m_spitActive = false;
         m_spitCooldown = 0.0f;
+        m_focus = 0;
         if (m_visualPartId.IsValid())
         {
             AZ::TransformBus::Event(m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion, AZ::Quaternion::CreateIdentity());
@@ -371,6 +385,41 @@ namespace YellowMythNailong
             AZ::Quaternion targetRotation = AZ::Quaternion::CreateShortestArc(AZ::Vector3::CreateAxisY(), direction.GetNormalized());
             AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, targetRotation);
         }
+    }
+
+    void PlayerControllerComponent::PerformHeavyAttack()
+    {
+        // F: spend every focus point on one crushing blow.
+        if (m_focus <= 0 || m_health <= 0.0f || m_isDodging || m_attackTimer > 0.0f)
+        {
+            return;
+        }
+
+        const int spent = m_focus;
+        m_focus = 0;
+        const float damage = m_heavyDamageBase + m_heavyDamagePerFocus * spent;
+
+        AZ::Vector3 pos = AZ::Vector3::CreateZero();
+        AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+        AZLOG_INFO("Nailong unleashes a heavy blow! (%d focus, %.0f damage)", spent, damage);
+        CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerAttack, pos, 8.0f, damage);
+
+        // Full-body spin, a hard lunge, and extra shake for the big hit.
+        AZ::Quaternion rotation = AZ::Quaternion::CreateIdentity();
+        AZ::TransformBus::EventResult(rotation, GetEntityId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
+        m_lungeDirection = rotation.TransformVector(AZ::Vector3::CreateAxisY());
+        m_lungeDirection.SetZ(0.0f);
+        if (m_lungeDirection.GetLengthSq() < 0.001f)
+        {
+            m_lungeDirection = AZ::Vector3::CreateAxisY();
+        }
+        m_lungeDirection.Normalize();
+        m_lungeSpeed = 12.0f;
+        m_lungeTimer = 0.32f;
+        m_pulseTimer = 0.15f;
+        m_finisherSpinActive = true;
+        m_shakeAmplitude = AZ::GetMin(m_shakeAmplitude + 0.25f, 0.7f);
+        m_attackTimer = 0.8f;
     }
 
     void PlayerControllerComponent::FireSpit()
