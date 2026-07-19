@@ -62,6 +62,9 @@ namespace YellowMythNailong
         void OnBossEngaged() override;
         void OnBossEnraged() override;
         void OnPlayerComboStrike() override;
+        void OnPlayerDodged() override;
+        void OnPlayerAttack(const AZ::Vector3& position, float radius, float damage) override;
+        void OnBossAttack(const AZ::Vector3& position, float radius, float damage) override;
 
     private:
         struct FloatingText
@@ -76,6 +79,29 @@ namespace YellowMythNailong
             float m_lifetime = 1.0f;
         };
 
+        // Lightweight world-space visual effects, drawn through ImGui.
+        struct Vfx
+        {
+            enum Type
+            {
+                SlashArc,   // melee swing arc in front of the attacker
+                SparkRay,   // one ray of an impact burst
+                DustPuff,   // small expanding ground ring
+                ShockRing,  // big expanding ground ring for the combo finisher
+                SpeedStreak // motion line trailing a dodge / charge
+            };
+
+            Type m_type = SlashArc;
+            AZ::Vector3 m_pos = AZ::Vector3::CreateZero();
+            AZ::Vector3 m_dir = AZ::Vector3::CreateAxisY();
+            float m_r = 1.0f;
+            float m_g = 1.0f;
+            float m_b = 1.0f;
+            float m_size = 1.0f;
+            float m_age = 0.0f;
+            float m_lifetime = 0.2f;
+        };
+
         void SetupRuntimeCamera();
         bool CanCreateRuntimeCamera() const;
         bool SetupNailongModel();
@@ -86,7 +112,12 @@ namespace YellowMythNailong
         void DrawBossBanner(float screenW, float screenH);
         void DrawVignette(float screenW, float screenH);
         void DrawTelegraphRing(float screenW, float screenH);
+        void DrawVfx(float screenW, float screenH);
         void SpawnFloatingText(const AZ::Vector3& worldPos, const char* text, float r, float g, float b, float scale);
+        void SpawnVfx(Vfx::Type type, const AZ::Vector3& pos, const AZ::Vector3& dir, float r, float g, float b, float size, float lifetime);
+        void SpawnSlashArc(const AZ::Vector3& attackerPos, const AZ::Vector3& facing, bool finisher, bool hostile);
+        void SpawnImpactBurst(const AZ::Vector3& pos, float r, float g, float b);
+        void SpawnDustBurst(const AZ::Vector3& pos, int count);
         bool WorldToScreen(const AZ::Vector3& worldPos, float screenW, float screenH, float& outX, float& outY, float& outDepth) const;
 
         AZ::EntityId m_runtimeCameraId;
@@ -94,9 +125,16 @@ namespace YellowMythNailong
         bool m_materialsApplied = false;
 
         AZStd::vector<FloatingText> m_floatingTexts;
+        AZStd::vector<Vfx> m_vfx;
         float m_hurtFlash = 0.0f;
         float m_bannerTimer = 0.0f;
         int m_bannerKind = 0; // 0 none, 1 boss engaged, 2 boss enraged
         float m_comboPopupTimer = 0.0f;
+
+        // Footstep dust emission state.
+        AZ::Vector3 m_lastDustPos = AZ::Vector3::CreateZero();
+        AZ::Vector3 m_lastBossPos = AZ::Vector3::CreateZero();
+        float m_dustTimer = 0.0f;
+        float m_chargeStreakTimer = 0.0f;
     };
 } // namespace YellowMythNailong

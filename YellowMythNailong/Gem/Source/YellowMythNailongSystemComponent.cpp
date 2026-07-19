@@ -166,6 +166,77 @@ namespace YellowMythNailong
             }
         }
 
+        // Age and retire visual effects.
+        for (auto it = m_vfx.begin(); it != m_vfx.end();)
+        {
+            it->m_age += deltaTime;
+            if (it->m_age >= it->m_lifetime)
+            {
+                it = m_vfx.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // Footstep dust while the player runs, and speed streaks behind a charging boss.
+        if (auto* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get())
+        {
+            appRequests->EnumerateEntities([&](AZ::Entity* entity)
+            {
+                if (!entity)
+                {
+                    return true;
+                }
+                const AZStd::string& name = entity->GetName();
+                if (name == "NailongPlayer")
+                {
+                    AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                    AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                    const float speed = (pos - m_lastDustPos).GetLength() * 60.0f; // rough m/s at 60 Hz
+                    m_lastDustPos = pos;
+                    if (speed > 2.0f)
+                    {
+                        m_dustTimer -= deltaTime;
+                        if (m_dustTimer <= 0.0f)
+                        {
+                            m_dustTimer = 0.16f;
+                            SpawnVfx(Vfx::DustPuff, pos + AZ::Vector3(0.0f, 0.0f, 0.05f), AZ::Vector3::CreateAxisY(),
+                                0.75f, 0.65f, 0.5f, 0.7f, 0.45f);
+                        }
+                    }
+                }
+                else if (name == "DarkBoss")
+                {
+                    if (auto* boss = entity->FindComponent<BossAIComponent>())
+                    {
+                        if (boss->IsCharging())
+                        {
+                            m_chargeStreakTimer -= deltaTime;
+                            if (m_chargeStreakTimer <= 0.0f)
+                            {
+                                m_chargeStreakTimer = 0.05f;
+                                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                                AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                                AZ::Vector3 motion = pos - m_lastBossPos;
+                                motion.SetZ(0.0f);
+                                if (motion.GetLengthSq() < 0.001f)
+                                {
+                                    motion = AZ::Vector3::CreateAxisY();
+                                }
+                                motion.Normalize();
+                                m_lastBossPos = pos;
+                                SpawnVfx(Vfx::SpeedStreak, pos + AZ::Vector3(0.0f, 0.0f, 2.0f), motion,
+                                    1.0f, 0.25f, 0.2f, 2.5f, 0.3f);
+                            }
+                        }
+                    }
+                }
+                return true;
+            });
+        }
+
         if (m_hurtFlash > 0.0f)
         {
             m_hurtFlash = AZ::GetMax(0.0f, m_hurtFlash - deltaTime * 2.5f);
@@ -193,6 +264,135 @@ namespace YellowMythNailong
         m_floatingTexts.push_back(ft);
     }
 
+    void YellowMythNailongSystemComponent::SpawnVfx(
+        Vfx::Type type, const AZ::Vector3& pos, const AZ::Vector3& dir, float r, float g, float b, float size, float lifetime)
+    {
+        Vfx v;
+        v.m_type = type;
+        v.m_pos = pos;
+        v.m_dir = dir;
+        v.m_r = r;
+        v.m_g = g;
+        v.m_b = b;
+        v.m_size = size;
+        v.m_lifetime = lifetime;
+        m_vfx.push_back(v);
+    }
+
+    void YellowMythNailongSystemComponent::SpawnSlashArc(
+        const AZ::Vector3& attackerPos, const AZ::Vector3& facing, bool finisher, bool hostile)
+    {
+        const float r = hostile ? 1.0f : 1.0f;
+        const float g = hostile ? 0.22f : 0.85f;
+        const float b = hostile ? 0.15f : 0.35f;
+        SpawnVfx(Vfx::SlashArc, attackerPos, facing, r, g, b, finisher ? 1.6f : 1.0f, 0.22f);
+        if (finisher)
+        {
+            SpawnVfx(Vfx::ShockRing, attackerPos, facing, r, g, b, 1.0f, 0.4f);
+        }
+    }
+
+    void YellowMythNailongSystemComponent::SpawnImpactBurst(const AZ::Vector3& pos, float r, float g, float b)
+    {
+        // Eight short rays shooting out of the impact point.
+        for (int i = 0; i < 8; ++i)
+        {
+            const float angle = AZ::Constants::TwoPi * static_cast<float>(i) / 8.0f + 0.4f;
+            const AZ::Vector3 dir(cosf(angle), sinf(angle), (i % 2 == 0) ? 0.6f : -0.2f);
+            SpawnVfx(Vfx::SparkRay, pos, dir, r, g, b, 1.0f, 0.16f);
+        }
+    }
+
+    void YellowMythNailongSystemComponent::SpawnDustBurst(const AZ::Vector3& pos, int count)
+    {
+        for (int i = 0; i < count; ++i)
+        {
+            const float angle = AZ::Constants::TwoPi * static_cast<float>(i) / count;
+            SpawnVfx(Vfx::DustPuff, pos + AZ::Vector3(cosf(angle) * 0.4f, sinf(angle) * 0.4f, 0.05f),
+                AZ::Vector3::CreateAxisY(), 0.75f, 0.65f, 0.5f, 1.1f, 0.5f);
+        }
+    }
+
+    void YellowMythNailongSystemComponent::OnPlayerAttack(const AZ::Vector3& position, float /*radius*/, float damage)
+    {
+        // Bright slash arc in front of the player along its facing.
+        AZ::Vector3 facing = AZ::Vector3::CreateAxisY();
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (appRequests)
+        {
+            appRequests->EnumerateEntities([&](AZ::Entity* entity)
+            {
+                if (entity && entity->GetName() == "NailongPlayer")
+                {
+                    AZ::Quaternion rotation = AZ::Quaternion::CreateIdentity();
+                    AZ::TransformBus::EventResult(rotation, entity->GetId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
+                    facing = rotation.TransformVector(AZ::Vector3::CreateAxisY());
+                    facing.SetZ(0.0f);
+                    if (facing.GetLengthSq() < 0.001f)
+                    {
+                        facing = AZ::Vector3::CreateAxisY();
+                    }
+                    facing.Normalize();
+                    return false;
+                }
+                return true;
+            });
+        }
+        SpawnSlashArc(position, facing, damage >= 70.0f, false);
+    }
+
+    void YellowMythNailongSystemComponent::OnBossAttack(const AZ::Vector3& position, float /*radius*/, float /*damage*/)
+    {
+        // Red slash arc from the boss toward the player.
+        AZ::Vector3 facing = AZ::Vector3::CreateAxisY();
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (appRequests)
+        {
+            AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
+            bool found = false;
+            appRequests->EnumerateEntities([&](AZ::Entity* entity)
+            {
+                if (entity && entity->GetName() == "NailongPlayer")
+                {
+                    AZ::TransformBus::EventResult(playerPos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                    found = true;
+                    return false;
+                }
+                return true;
+            });
+            if (found)
+            {
+                facing = playerPos - position;
+                facing.SetZ(0.0f);
+                if (facing.GetLengthSq() > 0.001f)
+                {
+                    facing.Normalize();
+                }
+            }
+        }
+        SpawnSlashArc(position, facing, false, true);
+    }
+
+    void YellowMythNailongSystemComponent::OnPlayerDodged()
+    {
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return;
+        }
+        appRequests->EnumerateEntities([this](AZ::Entity* entity)
+        {
+            if (entity && entity->GetName() == "NailongPlayer")
+            {
+                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                SpawnDustBurst(pos, 6);
+                return false;
+            }
+            return true;
+        });
+    }
+
     void YellowMythNailongSystemComponent::OnBossDamaged(float damage)
     {
         // Gold number over the boss; the combo finisher pops bigger.
@@ -211,6 +411,7 @@ namespace YellowMythNailong
                 const bool finisher = damage >= 70.0f;
                 const AZStd::string text = AZStd::string::format("-%d", static_cast<int>(damage));
                 SpawnFloatingText(pos, text.c_str(), 1.0f, 0.85f, 0.2f, finisher ? 2.2f : 1.4f);
+                SpawnImpactBurst(pos, 1.0f, 0.85f, 0.3f);
                 return false;
             }
             return true;
@@ -235,6 +436,8 @@ namespace YellowMythNailong
                 pos += AZ::Vector3(0.0f, 0.0f, 2.0f);
                 const AZStd::string text = AZStd::string::format("-%d", static_cast<int>(damage));
                 SpawnFloatingText(pos, text.c_str(), 1.0f, 0.25f, 0.2f, 1.3f);
+                SpawnImpactBurst(pos, 1.0f, 0.3f, 0.25f);
+                SpawnDustBurst(pos - AZ::Vector3(0.0f, 0.0f, 1.9f), 3);
                 return false;
             }
             return true;
@@ -672,8 +875,111 @@ namespace YellowMythNailong
 
         DrawBossBanner(sw, sh);
         DrawTelegraphRing(sw, sh);
+        DrawVfx(sw, sh);
         DrawFloatingTexts(sw, sh);
         DrawVignette(sw, sh);
+    }
+
+    void YellowMythNailongSystemComponent::DrawVfx(float sw, float sh)
+    {
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        for (const Vfx& v : m_vfx)
+        {
+            const float t = AZ::GetClamp(v.m_age / v.m_lifetime, 0.0f, 1.0f);
+            const float alpha = 1.0f - t;
+            const ImU32 colCore = IM_COL32(
+                static_cast<int>(v.m_r * 255), static_cast<int>(v.m_g * 255), static_cast<int>(v.m_b * 255),
+                static_cast<int>(235 * alpha));
+            const ImU32 colGlow = IM_COL32(
+                static_cast<int>(v.m_r * 255), static_cast<int>(v.m_g * 255), static_cast<int>(v.m_b * 255),
+                static_cast<int>(90 * alpha));
+
+            if (v.m_type == Vfx::SlashArc)
+            {
+                // Expanding crescent in front of the attacker, at chest height.
+                const float baseAngle = atan2f(v.m_dir.GetY(), v.m_dir.GetX());
+                const float radius = (1.4f + 2.4f * t) * v.m_size;
+                const float z = v.m_pos.GetZ() + 1.2f;
+                ImVec2 pts[16];
+                int n = 0;
+                for (int i = 0; i < 16; ++i)
+                {
+                    const float a = baseAngle + AZ::DegToRad(-75.0f + 150.0f * static_cast<float>(i) / 15.0f);
+                    const AZ::Vector3 p(v.m_pos.GetX() + cosf(a) * radius, v.m_pos.GetY() + sinf(a) * radius, z);
+                    float sx = 0.0f, sy = 0.0f, d = 0.0f;
+                    if (WorldToScreen(p, sw, sh, sx, sy, d))
+                    {
+                        pts[n++] = ImVec2(sx, sy);
+                    }
+                }
+                if (n >= 2)
+                {
+                    drawList->AddPolyline(pts, n, colGlow, false, 14.0f * v.m_size);
+                    drawList->AddPolyline(pts, n, colCore, false, 5.0f * v.m_size);
+                }
+            }
+            else if (v.m_type == Vfx::SparkRay)
+            {
+                const float len = 1.6f * (0.4f + t);
+                float x1 = 0.0f, y1 = 0.0f, d1 = 0.0f, x2 = 0.0f, y2 = 0.0f, d2 = 0.0f;
+                if (WorldToScreen(v.m_pos, sw, sh, x1, y1, d1) &&
+                    WorldToScreen(v.m_pos + v.m_dir * len, sw, sh, x2, y2, d2))
+                {
+                    drawList->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), colCore, 3.0f);
+                }
+            }
+            else if (v.m_type == Vfx::DustPuff)
+            {
+                const float radius = (0.25f + 0.9f * t) * v.m_size;
+                ImVec2 pts[13];
+                int n = 0;
+                for (int i = 0; i <= 12; ++i)
+                {
+                    const float a = AZ::Constants::TwoPi * static_cast<float>(i) / 12.0f;
+                    const AZ::Vector3 p = v.m_pos + AZ::Vector3(cosf(a) * radius, sinf(a) * radius, 0.0f);
+                    float sx = 0.0f, sy = 0.0f, d = 0.0f;
+                    if (WorldToScreen(p, sw, sh, sx, sy, d))
+                    {
+                        pts[n++] = ImVec2(sx, sy);
+                    }
+                }
+                if (n >= 3)
+                {
+                    drawList->AddPolyline(pts, n, colGlow, true, 3.0f);
+                }
+            }
+            else if (v.m_type == Vfx::ShockRing)
+            {
+                const float radius = (1.0f + 4.5f * t) * v.m_size;
+                ImVec2 pts[25];
+                int n = 0;
+                for (int i = 0; i <= 24; ++i)
+                {
+                    const float a = AZ::Constants::TwoPi * static_cast<float>(i) / 24.0f;
+                    const AZ::Vector3 p = v.m_pos + AZ::Vector3(cosf(a) * radius, sinf(a) * radius, 0.1f);
+                    float sx = 0.0f, sy = 0.0f, d = 0.0f;
+                    if (WorldToScreen(p, sw, sh, sx, sy, d))
+                    {
+                        pts[n++] = ImVec2(sx, sy);
+                    }
+                }
+                if (n >= 3)
+                {
+                    drawList->AddPolyline(pts, n, colGlow, true, 10.0f);
+                    drawList->AddPolyline(pts, n, colCore, true, 4.0f);
+                }
+            }
+            else if (v.m_type == Vfx::SpeedStreak)
+            {
+                const float len = v.m_size * (0.5f + t);
+                float x1 = 0.0f, y1 = 0.0f, d1 = 0.0f, x2 = 0.0f, y2 = 0.0f, d2 = 0.0f;
+                if (WorldToScreen(v.m_pos, sw, sh, x1, y1, d1) &&
+                    WorldToScreen(v.m_pos - v.m_dir * len, sw, sh, x2, y2, d2))
+                {
+                    drawList->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), colCore, 4.0f);
+                }
+            }
+        }
     }
 
     void YellowMythNailongSystemComponent::DrawFloatingTexts(float sw, float sh)

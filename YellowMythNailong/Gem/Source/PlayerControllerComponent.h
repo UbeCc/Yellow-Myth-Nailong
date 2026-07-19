@@ -3,6 +3,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Math/Random.h>
+#include <AzCore/std/containers/vector.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include "CombatNotificationBus.h"
 
@@ -51,6 +52,7 @@ namespace YellowMythNailong
         void UpdateCamera(float deltaTime);
         void TryFindCameraEntity();
         void TryFindPartEntities();
+        void CacheRockPositions();
         void UpdateVisuals(float deltaTime);
         void UpdatePartAnimations(float deltaTime);
 
@@ -111,7 +113,12 @@ namespace YellowMythNailong
         float m_blinkActiveTimer = 0.0f;  // > 0 while the eyes are closed
         float m_knockbackTimer = 0.0f;
         AZ::Vector3 m_knockbackDirection = AZ::Vector3::CreateAxisY();
+        bool m_finisherSpinActive = false;  // full-body spin during the combo finisher
         AZ::Vector3 m_cameraSmoothedPos = AZ::Vector3::CreateZero();
+
+        // Static boulder positions for camera anti-occlusion.
+        AZStd::vector<AZ::Vector3> m_rockPositions;
+        bool m_rocksCached = false;
         bool m_cameraSmoothedInit = false;
         AZ::SimpleLcgRandom m_rng;
     };

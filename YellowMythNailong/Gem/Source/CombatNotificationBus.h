@@ -30,6 +30,8 @@ namespace YellowMythNailong
         virtual void OnBossEnraged() {}
         // Broadcast when the player lands the third hit of the melee combo.
         virtual void OnPlayerComboStrike() {}
+        // Broadcast when the player starts a dodge roll.
+        virtual void OnPlayerDodged() {}
     };
     using CombatNotificationBus = AZ::EBus<CombatNotifications>;
 } // namespace YellowMythNailong

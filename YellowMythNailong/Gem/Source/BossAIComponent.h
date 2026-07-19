@@ -27,6 +27,7 @@ namespace YellowMythNailong
         float GetMaxHealth() const { return m_maxHealth; }
         bool IsEnraged() const { return m_enraged; }
         bool IsTelegraphing() const { return m_state == State::Telegraph; }
+        bool IsCharging() const { return m_state == State::Charge; }
         AZ::Vector3 GetTelegraphTarget() const { return m_chargeTarget; }
         float GetTelegraphRadius() const { return m_chargeRadius; }
 

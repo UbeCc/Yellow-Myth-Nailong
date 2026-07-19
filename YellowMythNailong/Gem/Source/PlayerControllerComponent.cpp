@@ -328,6 +328,7 @@ namespace YellowMythNailong
         m_knockbackTimer = 0.0f;
         m_blinkActiveTimer = 0.0f;
         m_blinkTimer = 2.5f;
+        m_finisherSpinActive = false;
         m_cameraSmoothedInit = false;
         if (m_visualPartId.IsValid())
         {
@@ -364,6 +365,7 @@ namespace YellowMythNailong
         m_isDodging = true;
         m_dodgeTimer = m_dodgeDuration;
         m_dodgeDirection = m_inputDirection.GetLengthSq() > 0.001f ? m_inputDirection.GetNormalized() : AZ::Vector3::CreateAxisY();
+        CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerDodged);
         AZLOG_INFO("Nailong dodges!");
     }
 
@@ -395,9 +397,10 @@ namespace YellowMythNailong
             m_lungeDirection = AZ::Vector3::CreateAxisY();
         }
         m_lungeDirection.Normalize();
-        m_lungeSpeed = finisher ? 14.0f : 7.0f;
-        m_lungeTimer = 0.12f;
+        m_lungeSpeed = finisher ? 10.0f : 7.0f;
+        m_lungeTimer = finisher ? 0.32f : 0.12f;
         m_pulseTimer = 0.15f;
+        m_finisherSpinActive = finisher;
     }
 
     void PlayerControllerComponent::UpdateVisuals(float deltaTime)
@@ -475,12 +478,23 @@ namespace YellowMythNailong
 
     void PlayerControllerComponent::UpdatePartAnimations(float deltaTime)
     {
-        // Body roll while dodging, a forward lean while lunging at the foe.
+        // Body roll while dodging, a forward lean while lunging at the foe,
+        // and a full spin while the combo finisher is out.
         float pitch = 0.0f;
+        float spin = 0.0f;
         if (m_isDodging)
         {
             const float progress = 1.0f - AZ::GetClamp(m_dodgeTimer / m_dodgeDuration, 0.0f, 1.0f);
             pitch = AZ::Constants::TwoPi * progress;
+        }
+        else if (m_finisherSpinActive)
+        {
+            const float progress = 1.0f - AZ::GetClamp(m_lungeTimer / 0.32f, 0.0f, 1.0f);
+            spin = AZ::Constants::TwoPi * progress;
+            if (m_lungeTimer <= 0.0f)
+            {
+                m_finisherSpinActive = false;
+            }
         }
         else if (m_lungeTimer > 0.0f)
         {
@@ -488,9 +502,10 @@ namespace YellowMythNailong
         }
         if (m_visualPartId.IsValid())
         {
-            AZ::TransformBus::Event(
-                m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion,
-                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisX(), pitch));
+            const AZ::Quaternion rotation =
+                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisZ(), spin) *
+                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisX(), pitch);
+            AZ::TransformBus::Event(m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion, rotation);
         }
 
         // Idle blinking keeps the little guy alive between swings.
@@ -551,6 +566,30 @@ namespace YellowMythNailong
         });
     }
 
+    void PlayerControllerComponent::CacheRockPositions()
+    {
+        if (m_rocksCached)
+        {
+            return;
+        }
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return;
+        }
+        appRequests->EnumerateEntities([this](AZ::Entity* entity)
+        {
+            if (entity && entity->GetName() == "Rock")
+            {
+                AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                m_rockPositions.push_back(pos);
+            }
+            return true;
+        });
+        m_rocksCached = !m_rockPositions.empty();
+    }
+
     void PlayerControllerComponent::UpdateCamera(float deltaTime)
     {
         // Camera shake decays even while the game is frozen by hitstop.
@@ -584,6 +623,21 @@ namespace YellowMythNailong
         const AZ::Vector3 relativeOffset(0.0f, -m_cameraDistance, m_cameraHeight);
         AZ::Vector3 cameraPos = m_cameraSmoothedPos + playerRotation.TransformVector(relativeOffset);
         const AZ::Vector3 lookAtPos = m_cameraSmoothedPos + AZ::Vector3(0.0f, 0.0f, m_cameraLookAtHeight);
+
+        // Keep the camera out of the boulders: if the desired position falls
+        // inside a rock's bounding sphere, slide it toward the player instead.
+        CacheRockPositions();
+        for (const AZ::Vector3& rock : m_rockPositions)
+        {
+            const float rockRadius = 2.6f;
+            const AZ::Vector3 center = rock + AZ::Vector3(0.0f, 0.0f, 1.2f);
+            AZ::Vector3 offset = cameraPos - center;
+            const float dist = offset.GetLength();
+            if (dist < rockRadius && dist > 0.001f)
+            {
+                cameraPos = center + offset * (rockRadius / dist);
+            }
+        }
 
         if (m_shakeAmplitude > 0.0f)
         {
