@@ -751,6 +751,15 @@ namespace YellowMythNailong
                         spitCooldown = pc->GetSpitCooldownRemaining();
                         spitCooldownMax = pc->GetSpitCooldownMax();
                     }
+                    AZ::TransformBus::EventResult(m_mapPlayerPos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                    AZ::Quaternion playerRot = AZ::Quaternion::CreateIdentity();
+                    AZ::TransformBus::EventResult(playerRot, entity->GetId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
+                    m_mapPlayerDir = playerRot.TransformVector(AZ::Vector3::CreateAxisY());
+                    m_mapPlayerDir.SetZ(0.0f);
+                    if (m_mapPlayerDir.GetLengthSq() > 0.001f)
+                    {
+                        m_mapPlayerDir.Normalize();
+                    }
                 }
                 else if (name == "DarkBoss")
                 {
@@ -759,7 +768,10 @@ namespace YellowMythNailong
                         bossFound = true;
                         bossHp = boss->GetHealth();
                         bossMax = boss->GetMaxHealth();
+                        m_mapBossEnraged = boss->IsEnraged();
                     }
+                    m_mapBossFound = true;
+                    AZ::TransformBus::EventResult(m_mapBossPos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
                 }
                 else if (name == "CombatManager")
                 {
@@ -918,7 +930,71 @@ namespace YellowMythNailong
         DrawTelegraphRing(sw, sh);
         DrawVfx(sw, sh);
         DrawFloatingTexts(sw, sh);
+        DrawMinimap(sw, sh);
         DrawVignette(sw, sh);
+    }
+
+    void YellowMythNailongSystemComponent::DrawMinimap(float sw, float sh)
+    {
+        // Player-centered minimap: rocks, the boss, and a facing tick for Nailong.
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        const float cx = 115.0f;
+        const float cy = sh - 115.0f;
+        const float mapR = 85.0f;
+        const float scale = mapR / 45.0f; // 45 m of world across the map
+
+        drawList->AddCircleFilled(ImVec2(cx, cy), mapR, IM_COL32(8, 10, 16, 150), 48);
+        drawList->AddCircle(ImVec2(cx, cy), mapR, IM_COL32(255, 220, 120, 70), 48, 2.0f);
+
+        auto plot = [&](const AZ::Vector3& worldPos, ImU32 color, float radius)
+        {
+            float dx = (worldPos.GetX() - m_mapPlayerPos.GetX()) * scale;
+            float dy = -(worldPos.GetY() - m_mapPlayerPos.GetY()) * scale;
+            const float maxR = mapR - 7.0f;
+            const float lenSq = dx * dx + dy * dy;
+            if (lenSq > maxR * maxR)
+            {
+                const float len = sqrtf(lenSq);
+                dx *= maxR / len;
+                dy *= maxR / len;
+            }
+            drawList->AddCircleFilled(ImVec2(cx + dx, cy + dy), radius, color, 16);
+        };
+
+        // Boulder positions are static; cache them once.
+        if (!m_mapRocksCached)
+        {
+            if (auto* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get())
+            {
+                appRequests->EnumerateEntities([this](AZ::Entity* entity)
+                {
+                    if (entity && entity->GetName() == "Rock")
+                    {
+                        AZ::Vector3 pos = AZ::Vector3::CreateZero();
+                        AZ::TransformBus::EventResult(pos, entity->GetId(), &AZ::TransformInterface::GetWorldTranslation);
+                        m_mapRockPositions.push_back(pos);
+                    }
+                    return true;
+                });
+            }
+            m_mapRocksCached = !m_mapRockPositions.empty();
+        }
+        for (const AZ::Vector3& rock : m_mapRockPositions)
+        {
+            plot(rock, IM_COL32(150, 150, 150, 110), 2.5f);
+        }
+
+        if (m_mapBossFound)
+        {
+            const ImU32 bossColor = m_mapBossEnraged ? IM_COL32(255, 60, 50, 255) : IM_COL32(190, 90, 255, 255);
+            plot(m_mapBossPos, bossColor, 5.5f);
+        }
+
+        // Player: yellow core with a white facing tick.
+        drawList->AddCircleFilled(ImVec2(cx, cy), 5.0f, IM_COL32(255, 210, 40, 255), 16);
+        const float tx = cx + m_mapPlayerDir.GetX() * 11.0f;
+        const float ty = cy - m_mapPlayerDir.GetY() * 11.0f;
+        drawList->AddLine(ImVec2(cx, cy), ImVec2(tx, ty), IM_COL32(255, 255, 255, 230), 2.5f);
     }
 
     void YellowMythNailongSystemComponent::DrawVfx(float sw, float sh)

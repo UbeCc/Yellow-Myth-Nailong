@@ -228,7 +228,13 @@ namespace YellowMythNailong
             if (m_inputDirection.GetLengthSq() > 0.001f)
             {
                 m_inputDirection.Normalize();
+                m_lastMoveDirection = m_inputDirection;
+                m_idleTimer = 0.0f;
                 Move(m_inputDirection, deltaTime);
+            }
+            else
+            {
+                m_idleTimer += deltaTime;
             }
 
             if (m_attackRequested && m_attackTimer <= 0.0f)
@@ -631,9 +637,27 @@ namespace YellowMythNailong
         }
         if (m_visualPartId.IsValid())
         {
+            // Lean into the current movement direction (player-local frame).
+            AZ::Quaternion playerRot = AZ::Quaternion::CreateIdentity();
+            AZ::TransformBus::EventResult(playerRot, GetEntityId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
+            const AZ::Vector3 localMove = playerRot.GetConjugate().TransformVector(m_lastMoveDirection);
+            const bool moving = (m_idleTimer < 0.1f);
+            const float targetPitch = moving ? 0.14f * localMove.GetY() : 0.0f;
+            const float targetRoll = moving ? 0.12f * localMove.GetX() : 0.0f;
+            const float leanBlend = AZ::GetMin(1.0f, 10.0f * deltaTime);
+            m_leanPitch += (targetPitch - m_leanPitch) * leanBlend;
+            m_leanRoll += (targetRoll - m_leanRoll) * leanBlend;
+
+            // Stand still for a breath and Nailong turns to look at you.
+            const float yawTarget = (m_idleTimer > 1.5f && !m_isDodging && m_lungeTimer <= 0.0f) ? AZ::Constants::Pi : 0.0f;
+            const float yawDelta = yawTarget - m_visualYaw;
+            const float yawStep = AZ::GetClamp(yawDelta, -2.5f * deltaTime, 2.5f * deltaTime);
+            m_visualYaw += yawStep;
+
             const AZ::Quaternion rotation =
-                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisZ(), spin) *
-                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisX(), pitch);
+                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisZ(), m_visualYaw + spin) *
+                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisY(), m_leanRoll) *
+                AZ::Quaternion::CreateFromAxisAngle(AZ::Vector3::CreateAxisX(), pitch + m_leanPitch);
             AZ::TransformBus::Event(m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion, rotation);
         }
 

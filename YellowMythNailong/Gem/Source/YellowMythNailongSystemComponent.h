@@ -114,6 +114,7 @@ namespace YellowMythNailong
         void DrawVignette(float screenW, float screenH);
         void DrawTelegraphRing(float screenW, float screenH);
         void DrawVfx(float screenW, float screenH);
+        void DrawMinimap(float screenW, float screenH);
         void SpawnFloatingText(const AZ::Vector3& worldPos, const char* text, float r, float g, float b, float scale);
         void SpawnVfx(Vfx::Type type, const AZ::Vector3& pos, const AZ::Vector3& dir, float r, float g, float b, float size, float lifetime);
         void SpawnSlashArc(const AZ::Vector3& attackerPos, const AZ::Vector3& facing, bool finisher, bool hostile);
@@ -137,5 +138,14 @@ namespace YellowMythNailong
         AZ::Vector3 m_lastBossPos = AZ::Vector3::CreateZero();
         float m_dustTimer = 0.0f;
         float m_chargeStreakTimer = 0.0f;
+
+        // Minimap state (world-space markers, player-centered).
+        AZ::Vector3 m_mapPlayerPos = AZ::Vector3::CreateZero();
+        AZ::Vector3 m_mapPlayerDir = AZ::Vector3::CreateAxisY();
+        AZ::Vector3 m_mapBossPos = AZ::Vector3::CreateZero();
+        bool m_mapBossFound = false;
+        bool m_mapBossEnraged = false;
+        AZStd::vector<AZ::Vector3> m_mapRockPositions;
+        bool m_mapRocksCached = false;
     };
 } // namespace YellowMythNailong

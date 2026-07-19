@@ -119,6 +119,14 @@ namespace YellowMythNailong
         float m_knockbackTimer = 0.0f;
         AZ::Vector3 m_knockbackDirection = AZ::Vector3::CreateAxisY();
         bool m_finisherSpinActive = false;  // full-body spin during the combo finisher
+
+        // Directional body language: lean into movement, face the camera when idle.
+        AZ::Vector3 m_lastMoveDirection = AZ::Vector3::CreateAxisY();
+        float m_idleTimer = 0.0f;
+        float m_visualYaw = 0.0f;
+        float m_leanPitch = 0.0f;
+        float m_leanRoll = 0.0f;
+
         AZ::Vector3 m_cameraSmoothedPos = AZ::Vector3::CreateZero();
 
         // Static boulder positions for camera anti-occlusion and player collision.
