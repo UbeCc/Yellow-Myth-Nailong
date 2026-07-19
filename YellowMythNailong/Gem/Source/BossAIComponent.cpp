@@ -105,9 +105,57 @@ namespace YellowMythNailong
         {
             m_chargeTimer -= deltaTime;
         }
+        if (m_fireballCooldown > 0.0f)
+        {
+            m_fireballCooldown -= deltaTime;
+        }
 
         UpdateAI(deltaTime);
+        UpdateFireball(deltaTime);
         UpdateVisuals(deltaTime);
+    }
+
+    void BossAIComponent::UpdateFireball(float deltaTime)
+    {
+        if (!m_fireballActive)
+        {
+            return;
+        }
+        if (!m_playerEntityId.IsValid())
+        {
+            m_fireballActive = false;
+            return;
+        }
+
+        AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
+        AZ::TransformBus::EventResult(playerPos, m_playerEntityId, &AZ::TransformInterface::GetWorldTranslation);
+
+        m_fireballTimer -= deltaTime;
+
+        // Mild homing: enough to threaten, slow enough to dodge.
+        AZ::Vector3 toPlayer = playerPos - m_fireballPosition;
+        toPlayer.SetZ(0.0f);
+        if (toPlayer.GetLengthSq() > 0.001f)
+        {
+            toPlayer.Normalize();
+            m_fireballDirection = (m_fireballDirection + toPlayer * 1.6f * deltaTime).GetNormalized();
+        }
+
+        m_fireballPosition += m_fireballDirection * 15.0f * deltaTime;
+        CombatNotificationBus::Broadcast(&CombatNotifications::OnProjectileTick, m_fireballPosition, true);
+
+        AZ::Vector3 delta = playerPos - m_fireballPosition;
+        delta.SetZ(0.0f);
+        if (delta.GetLengthSq() <= 2.2f * 2.2f)
+        {
+            CombatNotificationBus::Broadcast(&CombatNotifications::OnBossAttack, m_fireballPosition, 2.5f, m_fireballDamage);
+            m_fireballActive = false;
+            return;
+        }
+        if (m_fireballTimer <= 0.0f)
+        {
+            m_fireballActive = false;
+        }
     }
 
     void BossAIComponent::TryFindPlayerEntity()
@@ -244,6 +292,17 @@ namespace YellowMythNailong
             return;
         }
 
+        // Phase two: lob a dark fireball when the player keeps their distance.
+        if (m_enraged && m_fireballCooldown <= 0.0f && !m_fireballActive && distance > 5.0f)
+        {
+            m_fireballActive = true;
+            m_fireballTimer = 2.0f;
+            m_fireballPosition = myPos + AZ::Vector3(0.0f, 0.0f, 1.5f);
+            m_fireballDirection = toPlayer;
+            m_fireballCooldown = m_fireballCooldownMax;
+            AZLOG_INFO("Boss hurls a dark fireball!");
+        }
+
         if (distance <= m_attackRange && m_attackTimer <= 0.0f)
         {
             m_state = State::Attack;
@@ -357,6 +416,8 @@ namespace YellowMythNailong
         m_playerDead = false;
         m_chargeTimer = 0.0f;
         m_telegraphTimer = 0.0f;
+        m_fireballActive = false;
+        m_fireballCooldown = 0.0f;
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, m_baseScale);
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, AZ::Vector3(20.0f, 20.0f, 0.75f));
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, AZ::Quaternion::CreateIdentity());

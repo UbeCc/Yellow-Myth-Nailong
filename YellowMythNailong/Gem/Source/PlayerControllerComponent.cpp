@@ -139,6 +139,13 @@ namespace YellowMythNailong
                 CombatNotificationBus::Broadcast(&CombatNotifications::OnRestartGame);
             }
         }
+        else if (channelName == "keyboard_key_alphanumeric_Q")
+        {
+            if (pressed)
+            {
+                FireSpit();
+            }
+        }
         else
         {
             return false;
@@ -235,6 +242,8 @@ namespace YellowMythNailong
         // Attacks requested mid-dodge/knockback stay buffered for the next free frame.
         m_inputDirection = AZ::Vector3::CreateZero();
 
+        UpdateSpit(deltaTime);
+        ResolveRockCollision();
         UpdateVisuals(deltaTime);
         UpdatePartAnimations(deltaTime);
         TryFindCameraEntity();
@@ -330,6 +339,8 @@ namespace YellowMythNailong
         m_blinkTimer = 2.5f;
         m_finisherSpinActive = false;
         m_cameraSmoothedInit = false;
+        m_spitActive = false;
+        m_spitCooldown = 0.0f;
         if (m_visualPartId.IsValid())
         {
             AZ::TransformBus::Event(m_visualPartId, &AZ::TransformInterface::SetLocalRotationQuaternion, AZ::Quaternion::CreateIdentity());
@@ -354,6 +365,124 @@ namespace YellowMythNailong
             AZ::Quaternion targetRotation = AZ::Quaternion::CreateShortestArc(AZ::Vector3::CreateAxisY(), direction.GetNormalized());
             AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldRotationQuaternion, targetRotation);
         }
+    }
+
+    void PlayerControllerComponent::FireSpit()
+    {
+        // Q: hock up a milk loogie at the boss. Slow, white, gross, effective.
+        if (m_spitActive || m_spitCooldown > 0.0f || m_health <= 0.0f || m_isDodging)
+        {
+            return;
+        }
+
+        AZ::Vector3 playerPos = AZ::Vector3::CreateZero();
+        AZ::TransformBus::EventResult(playerPos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+
+        AZ::Vector3 targetDir = AZ::Vector3::CreateZero();
+        bool hasTarget = false;
+        if (m_bossEntityId.IsValid())
+        {
+            AZ::Vector3 bossPos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(bossPos, m_bossEntityId, &AZ::TransformInterface::GetWorldTranslation);
+            targetDir = bossPos - playerPos;
+            targetDir.SetZ(0.0f);
+            hasTarget = targetDir.GetLengthSq() > 0.5f;
+        }
+        if (!hasTarget)
+        {
+            AZ::Quaternion rotation = AZ::Quaternion::CreateIdentity();
+            AZ::TransformBus::EventResult(rotation, GetEntityId(), &AZ::TransformInterface::GetWorldRotationQuaternion);
+            targetDir = rotation.TransformVector(AZ::Vector3::CreateAxisY());
+            targetDir.SetZ(0.0f);
+        }
+        if (targetDir.GetLengthSq() < 0.001f)
+        {
+            targetDir = AZ::Vector3::CreateAxisY();
+        }
+        targetDir.Normalize();
+
+        m_spitActive = true;
+        m_spitTimer = 2.0f;
+        m_spitPosition = playerPos + AZ::Vector3(0.0f, 0.0f, 1.0f);
+        m_spitDirection = targetDir;
+        m_spitCooldown = m_spitCooldownMax;
+        AZLOG_INFO("Nailong spits!");
+    }
+
+    void PlayerControllerComponent::UpdateSpit(float deltaTime)
+    {
+        if (m_spitCooldown > 0.0f)
+        {
+            m_spitCooldown -= deltaTime;
+        }
+        if (!m_spitActive)
+        {
+            return;
+        }
+
+        m_spitTimer -= deltaTime;
+
+        // Gently home in on the boss so the loogie actually connects.
+        if (m_bossEntityId.IsValid())
+        {
+            AZ::Vector3 bossPos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(bossPos, m_bossEntityId, &AZ::TransformInterface::GetWorldTranslation);
+            AZ::Vector3 toBoss = bossPos - m_spitPosition;
+            toBoss.SetZ(0.0f);
+            if (toBoss.GetLengthSq() > 0.001f)
+            {
+                m_spitDebugTimer -= deltaTime;
+                if (m_spitDebugTimer <= 0.0f)
+                {
+                    m_spitDebugTimer = 0.3f;
+                    AZLOG_INFO("Spit at (%.1f,%.1f), boss %.1fm away", m_spitPosition.GetX(), m_spitPosition.GetY(), toBoss.GetLength());
+                }
+                toBoss.Normalize();
+                m_spitDirection = (m_spitDirection + toBoss * 4.0f * deltaTime).GetNormalized();
+            }
+        }
+
+        m_spitPosition += m_spitDirection * 18.0f * deltaTime;
+        CombatNotificationBus::Broadcast(&CombatNotifications::OnProjectileTick, m_spitPosition, false);
+
+        if (m_bossEntityId.IsValid())
+        {
+            AZ::Vector3 bossPos = AZ::Vector3::CreateZero();
+            AZ::TransformBus::EventResult(bossPos, m_bossEntityId, &AZ::TransformInterface::GetWorldTranslation);
+            AZ::Vector3 delta = bossPos - m_spitPosition;
+            delta.SetZ(0.0f);
+            if (delta.GetLengthSq() <= 2.5f * 2.5f)
+            {
+                CombatNotificationBus::Broadcast(&CombatNotifications::OnPlayerAttack, m_spitPosition, 3.0f, 30.0f);
+                m_spitActive = false;
+                return;
+            }
+        }
+        if (m_spitTimer <= 0.0f)
+        {
+            m_spitActive = false;
+        }
+    }
+
+    void PlayerControllerComponent::ResolveRockCollision()
+    {
+        // The boulders are solid: shove the little hero out of their spheres.
+        CacheRockPositions();
+        AZ::Vector3 pos = AZ::Vector3::CreateZero();
+        AZ::TransformBus::EventResult(pos, GetEntityId(), &AZ::TransformInterface::GetWorldTranslation);
+        for (const AZ::Vector3& rock : m_rockPositions)
+        {
+            const float minDist = 2.0f;
+            AZ::Vector3 delta = pos - rock;
+            delta.SetZ(0.0f);
+            const float dist = delta.GetLength();
+            if (dist < minDist && dist > 0.001f)
+            {
+                pos = rock + delta * (minDist / dist);
+                pos.SetZ(0.0f);
+            }
+        }
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetWorldTranslation, pos);
     }
 
     void PlayerControllerComponent::PerformDodge()

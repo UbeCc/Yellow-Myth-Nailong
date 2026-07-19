@@ -32,6 +32,8 @@ namespace YellowMythNailong
         virtual void OnPlayerComboStrike() {}
         // Broadcast when the player starts a dodge roll.
         virtual void OnPlayerDodged() {}
+        // Broadcast every tick while a projectile flies (spit / fireball trail VFX).
+        virtual void OnProjectileTick(const AZ::Vector3& position, bool hostile) { AZ_UNUSED(position); AZ_UNUSED(hostile); }
     };
     using CombatNotificationBus = AZ::EBus<CombatNotifications>;
 } // namespace YellowMythNailong

@@ -93,8 +93,12 @@ namespace YellowMythNailong
 
         if (!m_bossEntityId.IsValid())
         {
+            // Keep looking rather than eating the first hit of the run.
             TryFindEntities();
-            return;
+            if (!m_bossEntityId.IsValid())
+            {
+                return;
+            }
         }
 
         AZ::Vector3 bossPos = AZ::Vector3::CreateZero();
@@ -120,7 +124,10 @@ namespace YellowMythNailong
         if (!m_playerEntityId.IsValid())
         {
             TryFindEntities();
-            return;
+            if (!m_playerEntityId.IsValid())
+            {
+                return;
+            }
         }
 
         AZ::Vector3 playerPos = AZ::Vector3::CreateZero();

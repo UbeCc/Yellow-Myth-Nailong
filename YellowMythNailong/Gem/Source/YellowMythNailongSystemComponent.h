@@ -65,6 +65,7 @@ namespace YellowMythNailong
         void OnPlayerDodged() override;
         void OnPlayerAttack(const AZ::Vector3& position, float radius, float damage) override;
         void OnBossAttack(const AZ::Vector3& position, float radius, float damage) override;
+        void OnProjectileTick(const AZ::Vector3& position, bool hostile) override;
 
     private:
         struct FloatingText

@@ -56,6 +56,7 @@ namespace YellowMythNailong
 
         void UpdateAI(float deltaTime);
         void PerformAttack();
+        void UpdateFireball(float deltaTime);
         void TryFindPlayerEntity();
         void UpdateVisuals(float deltaTime);
 
@@ -99,6 +100,15 @@ namespace YellowMythNailong
         float m_chargeTimer = 0.0f;
         float m_telegraphTimer = 0.0f;
         AZ::Vector3 m_chargeTarget = AZ::Vector3::CreateZero();
+
+        // Phase-two dark fireball: a slow dodgeable projectile.
+        bool m_fireballActive = false;
+        AZ::Vector3 m_fireballPosition = AZ::Vector3::CreateZero();
+        AZ::Vector3 m_fireballDirection = AZ::Vector3::CreateAxisY();
+        float m_fireballTimer = 0.0f;
+        float m_fireballCooldown = 0.0f;
+        float m_fireballCooldownMax = 4.5f;
+        float m_fireballDamage = 12.0f;
 
         AZ::SimpleLcgRandom m_rng;
     };

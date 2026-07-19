@@ -393,6 +393,19 @@ namespace YellowMythNailong
         });
     }
 
+    void YellowMythNailongSystemComponent::OnProjectileTick(const AZ::Vector3& position, bool hostile)
+    {
+        // Droplet trail behind the flying projectile.
+        if (hostile)
+        {
+            SpawnVfx(Vfx::SparkRay, position, AZ::Vector3::CreateAxisZ(), 0.9f, 0.2f, 0.25f, 0.6f, 0.12f);
+        }
+        else
+        {
+            SpawnVfx(Vfx::SparkRay, position, AZ::Vector3::CreateAxisZ(), 0.95f, 0.95f, 0.9f, 0.5f, 0.10f);
+        }
+    }
+
     void YellowMythNailongSystemComponent::OnBossDamaged(float damage)
     {
         // Gold number over the boss; the combo finisher pops bigger.
@@ -717,6 +730,7 @@ namespace YellowMythNailong
         // Gather gameplay state from the entities.
         float playerHp = -1.0f, playerMax = 1.0f;
         float bossHp = -1.0f, bossMax = 1.0f;
+        float spitCooldown = 0.0f, spitCooldownMax = 1.0f;
         bool bossFound = false, gameOver = false, victory = false, gameStarted = true;
 
         if (auto* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get())
@@ -734,6 +748,8 @@ namespace YellowMythNailong
                     {
                         playerHp = pc->GetHealth();
                         playerMax = pc->GetMaxHealth();
+                        spitCooldown = pc->GetSpitCooldownRemaining();
+                        spitCooldownMax = pc->GetSpitCooldownMax();
                     }
                 }
                 else if (name == "DarkBoss")
@@ -816,11 +832,36 @@ namespace YellowMythNailong
 
         // Controls hint (bottom-center).
         {
-            const char* hint = "WASD Move    Space Dodge    Enter / LMB Attack";
+            const char* hint = "WASD Move    Space Dodge    Enter / LMB Attack    Q Milk Spit";
             const float tw = ImGui::CalcTextSize(hint).x;
             ImGui::SetNextWindowPos(ImVec2((sw - tw) * 0.5f, sh - 36.0f));
             ImGui::Begin("Hint", nullptr, hudFlags);
             ImGui::TextUnformatted(hint);
+            ImGui::End();
+        }
+
+        // Milk spit skill indicator (bottom-right).
+        if (playerHp >= 0.0f && !gameOver)
+        {
+            const bool ready = spitCooldown <= 0.0f;
+            ImGui::SetNextWindowPos(ImVec2(sw - 200.0f, sh - 90.0f));
+            ImGui::SetNextWindowSize(ImVec2(180.0f, 0.0f));
+            ImGui::Begin("SpitSkill", nullptr, hudFlags);
+            if (ready)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.95f, 0.9f, 1.0f));
+                ImGui::TextUnformatted("[Q] MILK SPIT");
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                ImGui::Text("[Q] %.1fs", spitCooldown);
+            }
+            ImGui::PopStyleColor();
+            if (!ready)
+            {
+                ImGui::ProgressBar(1.0f - spitCooldown / spitCooldownMax, ImVec2(160.0f, 6.0f));
+            }
             ImGui::End();
         }
 

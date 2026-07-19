@@ -27,6 +27,8 @@ namespace YellowMythNailong
 
         float GetHealth() const { return m_health; }
         float GetMaxHealth() const { return m_maxHealth; }
+        float GetSpitCooldownRemaining() const { return m_spitCooldown; }
+        float GetSpitCooldownMax() const { return m_spitCooldownMax; }
 
     protected:
         void Init() override;
@@ -49,6 +51,9 @@ namespace YellowMythNailong
         void Move(const AZ::Vector3& direction, float deltaTime);
         void PerformDodge();
         void PerformAttack();
+        void FireSpit();
+        void UpdateSpit(float deltaTime);
+        void ResolveRockCollision();
         void UpdateCamera(float deltaTime);
         void TryFindCameraEntity();
         void TryFindPartEntities();
@@ -116,9 +121,18 @@ namespace YellowMythNailong
         bool m_finisherSpinActive = false;  // full-body spin during the combo finisher
         AZ::Vector3 m_cameraSmoothedPos = AZ::Vector3::CreateZero();
 
-        // Static boulder positions for camera anti-occlusion.
+        // Static boulder positions for camera anti-occlusion and player collision.
         AZStd::vector<AZ::Vector3> m_rockPositions;
         bool m_rocksCached = false;
+
+        // Milk spit (Q): a slow white projectile that arcs toward the boss.
+        bool m_spitActive = false;
+        AZ::Vector3 m_spitPosition = AZ::Vector3::CreateZero();
+        AZ::Vector3 m_spitDirection = AZ::Vector3::CreateAxisY();
+        float m_spitTimer = 0.0f;
+        float m_spitCooldown = 0.0f;
+        float m_spitDebugTimer = 0.0f;
+        float m_spitCooldownMax = 3.0f;
         bool m_cameraSmoothedInit = false;
         AZ::SimpleLcgRandom m_rng;
     };
