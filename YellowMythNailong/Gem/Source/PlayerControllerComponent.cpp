@@ -94,6 +94,13 @@ namespace YellowMythNailong
         const bool pressed = (state == AzFramework::InputChannel::State::Began);
         const bool released = (state == AzFramework::InputChannel::State::Ended);
 
+        // The first move/dodge/attack dismisses the title screen.
+        if (pressed && m_broadcastGameStart)
+        {
+            m_broadcastGameStart = false;
+            CombatNotificationBus::Broadcast(&CombatNotifications::OnGameStart);
+        }
+
         if (channelName == "keyboard_key_alphanumeric_W")
         {
             m_keyW = !released;

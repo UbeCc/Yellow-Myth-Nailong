@@ -24,6 +24,7 @@ namespace YellowMythNailong
 
         bool IsGameOver() const { return m_gameOver; }
         bool IsVictory() const { return m_victory; }
+        bool IsGameStarted() const { return m_gameStarted; }
 
     protected:
         void Init() override;
@@ -35,6 +36,7 @@ namespace YellowMythNailong
         void OnPlayerDied() override;
         void OnBossDied() override;
         void OnRestartGame() override;
+        void OnGameStart() override;
 
     private:
         void TryFindEntities();
@@ -44,5 +46,6 @@ namespace YellowMythNailong
         AZ::EntityId m_bossEntityId;
         bool m_gameOver = false;
         bool m_victory = false;
+        bool m_gameStarted = false;
     };
 } // namespace YellowMythNailong

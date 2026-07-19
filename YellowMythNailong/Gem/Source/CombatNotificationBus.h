@@ -22,6 +22,8 @@ namespace YellowMythNailong
         virtual void OnBossDied() {}
         // Broadcast when the player asks to restart after game over / victory.
         virtual void OnRestartGame() {}
+        // Broadcast once when the player first moves/acts (dismisses the title screen).
+        virtual void OnGameStart() {}
     };
     using CombatNotificationBus = AZ::EBus<CombatNotifications>;
 } // namespace YellowMythNailong

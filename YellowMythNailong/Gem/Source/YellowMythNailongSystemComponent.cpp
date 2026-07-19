@@ -332,7 +332,7 @@ namespace YellowMythNailong
         // Gather gameplay state from the entities.
         float playerHp = -1.0f, playerMax = 1.0f;
         float bossHp = -1.0f, bossMax = 1.0f;
-        bool bossFound = false, gameOver = false, victory = false;
+        bool bossFound = false, gameOver = false, victory = false, gameStarted = true;
 
         if (auto* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get())
         {
@@ -366,6 +366,7 @@ namespace YellowMythNailong
                     {
                         gameOver = cm->IsGameOver();
                         victory = cm->IsVictory();
+                        gameStarted = cm->IsGameStarted();
                     }
                 }
                 return true;
@@ -386,6 +387,13 @@ namespace YellowMythNailong
             float f = max > 0.0f ? value / max : 0.0f;
             return f < 0.0f ? 0.0f : (f > 1.0f ? 1.0f : f);
         };
+
+        // Title screen until the player first moves/acts.
+        if (!gameStarted)
+        {
+            DrawTitleScreen(sw, sh);
+            return;
+        }
 
         // Player HP (top-left).
         if (playerHp >= 0.0f)
@@ -461,6 +469,66 @@ namespace YellowMythNailong
             ImGui::SetWindowFontScale(1.0f);
             ImGui::End();
         }
+    }
+
+    void YellowMythNailongSystemComponent::DrawTitleScreen(float sw, float sh)
+    {
+        // Dim the whole screen behind the title.
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowSize(ImVec2(sw, sh));
+        ImGui::Begin("TitleBackdrop", nullptr,
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings);
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            ImVec2(0.0f, 0.0f), ImVec2(sw, sh), IM_COL32(8, 8, 12, 225));
+        ImGui::End();
+
+        const ImGuiWindowFlags flags =
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs |
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize;
+
+        ImGui::SetNextWindowPos(ImVec2(sw * 0.5f - 300.0f, sh * 0.30f));
+        ImGui::SetNextWindowSize(ImVec2(600.0f, 0.0f));
+        ImGui::Begin("Title", nullptr, flags);
+
+        ImGui::SetWindowFontScale(3.2f);
+        {
+            const char* title = "BLACK MYTH : NAILONG";
+            const float tw = ImGui::CalcTextSize(title).x;
+            ImGui::SetCursorPosX((600.0f - tw) * 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.82f, 0.15f, 1.0f));
+            ImGui::TextUnformatted(title);
+            ImGui::PopStyleColor();
+        }
+
+        ImGui::SetWindowFontScale(1.15f);
+        static const char* story[] = {
+            "For a hundred years the little yellow dragon Nailong",
+            "dozed in the sunny valley, fat and content.",
+            "",
+            "Then the Dark Dragon came, and drank the light.",
+            "Now only a chubby hero can take it back.",
+        };
+        for (const char* line : story)
+        {
+            const float tw = ImGui::CalcTextSize(line).x;
+            ImGui::SetCursorPosX((600.0f - tw) * 0.5f);
+            ImGui::TextUnformatted(line);
+        }
+
+        ImGui::SetWindowFontScale(1.3f);
+        ImGui::Dummy(ImVec2(0.0f, 14.0f));
+        {
+            const char* prompt = "Move to begin your legend";
+            const float tw = ImGui::CalcTextSize(prompt).x;
+            ImGui::SetCursorPosX((600.0f - tw) * 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
+            ImGui::TextUnformatted(prompt);
+            ImGui::PopStyleColor();
+        }
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::End();
     }
 
 } // namespace YellowMythNailong

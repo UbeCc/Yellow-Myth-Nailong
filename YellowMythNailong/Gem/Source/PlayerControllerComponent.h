@@ -79,6 +79,8 @@ namespace YellowMythNailong
         float m_cameraHeight = 2.5f;
         float m_cameraLookAtHeight = 1.5f;
 
+        bool m_broadcastGameStart = true;
+
         AZ::EntityId m_cameraEntityId;
     };
 } // namespace YellowMythNailong

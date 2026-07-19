@@ -55,6 +55,7 @@ namespace YellowMythNailong
         bool CanCreateRuntimeCamera() const;
         bool SetupNailongModel();
         void DrawHud();
+        void DrawTitleScreen(float screenW, float screenH);
 
         AZ::EntityId m_runtimeCameraId;
         bool m_nailongModelSet = false;

@@ -155,6 +155,12 @@ namespace YellowMythNailong
     {
         m_gameOver = false;
         m_victory = false;
+        m_gameStarted = true;
         AZLOG_INFO("Restarting the Yellow Myth...");
+    }
+
+    void CombatManagerComponent::OnGameStart()
+    {
+        m_gameStarted = true;
     }
 } // namespace YellowMythNailong
