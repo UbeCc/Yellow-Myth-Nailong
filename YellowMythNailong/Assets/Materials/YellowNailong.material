@@ -5,7 +5,7 @@
         "baseColor.color": [1.0, 0.85, 0.1, 1.0],
         "emissive.enable": true,
         "emissive.color": [1.0, 0.85, 0.1, 1.0],
-        "emissive.intensity": 0.0,
+        "emissive.intensity": 2.0,
         "opacity.factor": 1.0,
         "roughness.factor": 0.6,
         "specularF0.factor": 0.5,

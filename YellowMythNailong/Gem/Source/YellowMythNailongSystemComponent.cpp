@@ -14,6 +14,11 @@
 #include <Atom/RPI.Public/ViewGroup.h>
 #include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/RPISystemInterface.h>
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
+#include <Atom/RPI.Reflect/Asset/AssetUtils.h>
+#include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
+#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentBus.h>
+#include <AzCore/Asset/AssetManagerBus.h>
 #include <AzCore/Component/TransformBus.h>
 
 #include "PlayerControllerComponent.h"
@@ -114,20 +119,86 @@ namespace YellowMythNailong
         {
             SetupRuntimeCamera();
         }
-        else
-        {
-            // RPI is not ready yet; retry on the next tick.
-            AZ::TickBus::Handler::BusConnect();
-        }
+
+        // The level entities finish spawning after this callback, so keep ticking to
+        // swap the player's model to the Nailong once it exists.
+        AZ::TickBus::Handler::BusConnect();
     }
 
     void YellowMythNailongSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        if (CanCreateRuntimeCamera())
+        if (!m_runtimeCameraId.IsValid() && CanCreateRuntimeCamera())
         {
             SetupRuntimeCamera();
+        }
+
+        if (!m_nailongModelSet)
+        {
+            m_nailongModelSet = SetupNailongModel();
+        }
+
+        if (m_runtimeCameraId.IsValid() && m_nailongModelSet)
+        {
             AZ::TickBus::Handler::BusDisconnect();
         }
+    }
+
+    namespace
+    {
+        void OverrideMaterialByProductPath(AZ::EntityId entityId, const char* productPath)
+        {
+            AZ::Data::AssetId materialAssetId;
+            AZ::Data::AssetCatalogRequestBus::BroadcastResult(
+                materialAssetId,
+                &AZ::Data::AssetCatalogRequestBus::Events::GetAssetIdByPath,
+                productPath,
+                azrtti_typeid<AZ::RPI::MaterialAsset>(),
+                false);
+            if (materialAssetId.IsValid())
+            {
+                AZ::Render::MaterialComponentRequestBus::Event(
+                    entityId,
+                    &AZ::Render::MaterialComponentRequestBus::Events::SetMaterialAssetIdOnDefaultSlot,
+                    materialAssetId);
+            }
+        }
+    }
+
+    bool YellowMythNailongSystemComponent::SetupNailongModel()
+    {
+        auto nailongAsset = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::ModelAsset>(
+            "quaternius/monsterpack/obj/nailong.glb.azmodel");
+        if (!nailongAsset.IsReady())
+        {
+            return false;
+        }
+
+
+
+        AZ::ComponentApplicationRequests* appRequests = AZ::Interface<AZ::ComponentApplicationRequests>::Get();
+        if (!appRequests)
+        {
+            return false;
+        }
+
+        bool done = false;
+        appRequests->EnumerateEntities([&done, &nailongAsset](AZ::Entity* entity)
+        {
+            if (entity && entity->GetName() == "NailongPlayer")
+            {
+                AZ::Render::MeshComponentRequestBus::Event(
+                    entity->GetId(), &AZ::Render::MeshComponentRequestBus::Events::SetModelAsset, nailongAsset);
+
+                // The GLB Nailong's materials got merged into a single red one by the
+                // importer; force the whole model to the yellow Nailong body color.
+                OverrideMaterialByProductPath(
+                    entity->GetId(), "assets/materials/yellownailong.azmaterial");
+                done = true;
+                return false;
+            }
+            return true;
+        });
+        return done;
     }
 
     bool YellowMythNailongSystemComponent::CanCreateRuntimeCamera() const

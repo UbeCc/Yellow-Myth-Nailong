@@ -515,60 +515,7 @@
           "Id": 2000000000000000014,
           "Controller": {
             "Configuration": {
-              "materials": [
-                {
-                  "Key": {
-                    "materialSlotStableId": 3684977204
-                  },
-                  "Value": {
-                    "MaterialAsset": {
-                      "assetId": {
-                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
-                      },
-                      "assetHint": "assets/materials/yellownailong.azmaterial"
-                    }
-                  }
-                },
-                {
-                  "Key": {
-                    "materialSlotStableId": 2045591818
-                  },
-                  "Value": {
-                    "MaterialAsset": {
-                      "assetId": {
-                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
-                      },
-                      "assetHint": "assets/materials/yellownailong.azmaterial"
-                    }
-                  }
-                },
-                {
-                  "Key": {
-                    "materialSlotStableId": 1906617137
-                  },
-                  "Value": {
-                    "MaterialAsset": {
-                      "assetId": {
-                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
-                      },
-                      "assetHint": "assets/materials/yellownailong.azmaterial"
-                    }
-                  }
-                },
-                {
-                  "Key": {
-                    "materialSlotStableId": 1300699237
-                  },
-                  "Value": {
-                    "MaterialAsset": {
-                      "assetId": {
-                        "guid": "{F95DF210-2EBD-57B0-93B1-E75815555129}"
-                      },
-                      "assetHint": "assets/materials/yellownailong.azmaterial"
-                    }
-                  }
-                }
-              ]
+              "materials": []
             }
           }
         }

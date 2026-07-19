@@ -71,8 +71,8 @@ namespace YellowMythNailong
         AzFramework::InputChannelEventListener::Connect();
 
         // TransformComponent ignores the prefab "Scale" field at runtime; set the
-        // Nailong dragon to a playable size (~2 m tall from the 385 m source model).
-        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, 0.005f);
+        // Nailong character to a playable size (the chubby model is ~1.7 m tall at 1.0).
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformInterface::SetLocalUniformScale, 1.2f);
 
         m_health = m_maxHealth;
         m_keyW = m_keyA = m_keyS = m_keyD = m_keySpace = false;

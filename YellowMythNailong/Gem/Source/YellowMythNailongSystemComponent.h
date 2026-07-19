@@ -53,8 +53,10 @@ namespace YellowMythNailong
     private:
         void SetupRuntimeCamera();
         bool CanCreateRuntimeCamera() const;
+        bool SetupNailongModel();
         void DrawHud();
 
         AZ::EntityId m_runtimeCameraId;
+        bool m_nailongModelSet = false;
     };
 } // namespace YellowMythNailong
